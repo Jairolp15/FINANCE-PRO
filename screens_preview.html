@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Pantallas del Sistema Financiero</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .iphone-frame {
+            width: 320px;
+            height: 640px;
+            border: 10px solid #1f2937;
+            border-radius: 44px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: #030712;
+        }
+        .dynamic-island {
+            width: 95px;
+            height: 24px;
+            background: #000;
+            border-radius: 20px;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 p-4 min-h-screen flex flex-col items-center">
+
+    <div class="max-w-6xl w-full space-y-6">
+        <!-- Header & Navigator Tabs -->
+        <div class="text-center space-y-2">
+            <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-emerald-400">
+                📱 Simulador Interactivo de Pantallas
+            </h1>
+            <p class="text-xs text-gray-400">Explora cómo se ve el sistema en cada etapa del registro y visualización</p>
+            
+            <div class="flex flex-wrap justify-center gap-2 pt-2">
+                <button onclick="showScreen('ios-step1')" id="btn-ios-step1" class="tab-btn px-3 py-1.5 text-xs font-bold rounded-xl bg-indigo-600 text-white shadow">1. iOS: Monto</button>
+                <button onclick="showScreen('ios-step2')" id="btn-ios-step2" class="tab-btn px-3 py-1.5 text-xs font-bold rounded-xl bg-gray-800 text-gray-300">2. iOS: Categoría</button>
+                <button onclick="showScreen('ios-step3')" id="btn-ios-step3" class="tab-btn px-3 py-1.5 text-xs font-bold rounded-xl bg-gray-800 text-gray-300">3. iOS: Éxito</button>
+                <button onclick="showScreen('pwa')" id="btn-pwa" class="tab-btn px-3 py-1.5 text-xs font-bold rounded-xl bg-gray-800 text-gray-300">4. PWA Móvil</button>
+                <button onclick="showScreen('telegram')" id="btn-telegram" class="tab-btn px-3 py-1.5 text-xs font-bold rounded-xl bg-gray-800 text-gray-300">5. Telegram Bot</button>
+                <button onclick="showScreen('dashboard')" id="btn-dashboard" class="tab-btn px-3 py-1.5 text-xs font-bold rounded-xl bg-gray-800 text-gray-300">6. Dashboard 2.0</button>
+            </div>
+        </div>
+
+        <!-- Phone & Screen Showcase Container -->
+        <div class="flex justify-center items-center py-4">
+            
+            <!-- SCREEN 1: iOS Prompt Monto -->
+            <div id="screen-ios-step1" class="screen-view iphone-frame flex flex-col justify-between p-4">
+                <div class="dynamic-island"></div>
+                
+                <!-- iOS Top Bar -->
+                <div class="pt-7 flex justify-between items-center text-[10px] text-gray-300 px-2">
+                    <span>9:41</span>
+                    <div class="flex space-x-1 items-center">
+                        <span>5G</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+
+                <!-- Native iOS Modal Dialog: Amount -->
+                <div class="my-auto bg-gray-900/90 backdrop-blur-xl border border-gray-700/60 rounded-3xl p-5 shadow-2xl space-y-4">
+                    <div class="text-center">
+                        <span class="text-2xl">💸</span>
+                        <h3 class="text-sm font-bold text-white mt-1">Registrar Gasto</h3>
+                        <p class="text-[11px] text-gray-400">¿Cuánto gastaste?</p>
+                    </div>
+                    <div class="bg-black/50 border border-indigo-500/50 rounded-2xl p-3 text-center">
+                        <span class="text-2xl font-black text-emerald-400">$ 18.50</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                        <button class="py-2.5 rounded-xl bg-gray-800 text-gray-300 font-semibold">Cancelar</button>
+                        <button onclick="showScreen('ios-step2')" class="py-2.5 rounded-xl bg-indigo-600 text-white font-bold shadow-lg">Siguiente ➔</button>
+                    </div>
+                </div>
+
+                <!-- Bottom Home Bar -->
+                <div class="w-28 h-1 bg-gray-600 rounded-full mx-auto mb-1"></div>
+            </div>
+
+            <!-- SCREEN 2: iOS Menu Categoría -->
+            <div id="screen-ios-step2" class="screen-view iphone-frame hidden flex flex-col justify-between p-4">
+                <div class="dynamic-island"></div>
+                
+                <div class="pt-7 flex justify-between items-center text-[10px] text-gray-300 px-2">
+                    <span>9:41</span>
+                    <div class="flex space-x-1 items-center">
+                        <span>5G</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+
+                <!-- Native iOS Action Sheet Menu -->
+                <div class="my-auto bg-gray-900/95 backdrop-blur-xl border border-gray-700/60 rounded-3xl p-4 shadow-2xl space-y-2">
+                    <h3 class="text-xs font-bold text-center text-gray-400 uppercase tracking-wider mb-2">Selecciona Categoría</h3>
+                    
+                    <button onclick="showScreen('ios-step3')" class="w-full text-left p-2.5 rounded-xl bg-gray-800/80 hover:bg-indigo-600/50 flex items-center justify-between text-xs transition">
+                        <span>🍔 Alimentación</span>
+                        <span class="text-gray-500 text-[10px]">Almuerzos, super</span>
+                    </button>
+                    <button onclick="showScreen('ios-step3')" class="w-full text-left p-2.5 rounded-xl bg-gray-800/80 hover:bg-indigo-600/50 flex items-center justify-between text-xs transition">
+                        <span>🚗 Transporte</span>
+                        <span class="text-gray-500 text-[10px]">Uber, gasolina</span>
+                    </button>
+                    <button onclick="showScreen('ios-step3')" class="w-full text-left p-2.5 rounded-xl bg-gray-800/80 hover:bg-indigo-600/50 flex items-center justify-between text-xs transition">
+                        <span>🎬 Ocio</span>
+                        <span class="text-gray-500 text-[10px]">Cine, salidas</span>
+                    </button>
+                    <button onclick="showScreen('ios-step3')" class="w-full text-left p-2.5 rounded-xl bg-gray-800/80 hover:bg-indigo-600/50 flex items-center justify-between text-xs transition">
+                        <span>💡 Servicios</span>
+                        <span class="text-gray-500 text-[10px]">Luz, internet</span>
+                    </button>
+                </div>
+
+                <div class="w-28 h-1 bg-gray-600 rounded-full mx-auto mb-1"></div>
+            </div>
+
+            <!-- SCREEN 3: iOS Success Notification -->
+            <div id="screen-ios-step3" class="screen-view iphone-frame hidden flex flex-col justify-between p-4">
+                <div class="dynamic-island"></div>
+                
+                <div class="pt-7 flex justify-between items-center text-[10px] text-gray-300 px-2">
+                    <span>9:41</span>
+                    <div class="flex space-x-1 items-center">
+                        <span>5G</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Island Expansion / Confirmation Banner -->
+                <div class="mt-4 bg-black/90 border border-emerald-500/40 rounded-3xl p-4 shadow-2xl space-y-2">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">✓</div>
+                        <div>
+                            <div class="text-xs font-bold text-white">Gasto Sincronizado</div>
+                            <div class="text-[10px] text-emerald-400">$18.50 en Alimentación</div>
+                        </div>
+                    </div>
+                    <div class="text-[9px] text-gray-400 border-t border-gray-800 pt-1.5 flex justify-between">
+                        <span>Notion Database</span>
+                        <span class="text-emerald-400 font-semibold">● Guardado</span>
+                    </div>
+                </div>
+
+                <div class="my-auto text-center space-y-2">
+                    <span class="text-5xl">⚡</span>
+                    <h4 class="text-sm font-bold text-white">¡Registro en 2 Segundos!</h4>
+                    <p class="text-[11px] text-gray-400 px-4">Tus métricas y presupuesto se han actualizado automáticamente.</p>
+                </div>
+
+                <div class="w-28 h-1 bg-gray-600 rounded-full mx-auto mb-1"></div>
+            </div>
+
+            <!-- SCREEN 4: PWA Móvil -->
+            <div id="screen-pwa" class="screen-view iphone-frame hidden flex flex-col justify-between p-4">
+                <div class="dynamic-island"></div>
+                <div class="pt-7 text-center">
+                    <span class="text-xs font-bold text-indigo-400">⚡ Captura Rápida PWA</span>
+                </div>
+
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3 my-auto text-xs">
+                    <div>
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-1">
+                            <span>Monto</span>
+                            <span class="text-indigo-400 font-bold">USD ($)</span>
+                        </div>
+                        <input type="text" value="35.00" readonly class="w-full bg-black border border-gray-700 rounded-xl p-2.5 text-center text-xl font-bold text-green-400">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400">Categoría</label>
+                        <div class="bg-black p-2 rounded-xl text-gray-200 border border-gray-700">🍔 Alimentación</div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400">Método de Pago</label>
+                        <div class="grid grid-cols-3 gap-1 pt-1 text-[10px] text-center">
+                            <div class="bg-indigo-600 text-white py-1.5 rounded-lg font-bold">💳 Tarjeta</div>
+                            <div class="bg-gray-800 text-gray-400 py-1.5 rounded-lg">💵 Efectivo</div>
+                            <div class="bg-gray-800 text-gray-400 py-1.5 rounded-lg">🏦 Transf.</div>
+                        </div>
+                    </div>
+                    <button class="w-full bg-emerald-600 text-white font-bold py-2.5 rounded-xl shadow">💾 Guardar Gasto</button>
+                </div>
+
+                <div class="w-28 h-1 bg-gray-600 rounded-full mx-auto mb-1"></div>
+            </div>
+
+            <!-- SCREEN 5: Telegram Bot -->
+            <div id="screen-telegram" class="screen-view iphone-frame hidden flex flex-col justify-between p-4">
+                <div class="dynamic-island"></div>
+                
+                <div class="pt-7 flex items-center space-x-2 border-b border-gray-800 pb-2">
+                    <div class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold">🤖</div>
+                    <div>
+                        <div class="text-xs font-bold text-white">Finanzas Bot</div>
+                        <div class="text-[9px] text-emerald-400">bot en línea</div>
+                    </div>
+                </div>
+
+                <!-- Chat Bubble Stream -->
+                <div class="my-auto space-y-3 text-xs">
+                    <!-- User Voice/Text Message -->
+                    <div class="flex justify-end">
+                        <div class="bg-indigo-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[80%] space-y-1">
+                            <p class="text-[11px]">Gasté 24.50 en supermercado con tarjeta</p>
+                            <span class="text-[9px] text-indigo-200 block text-right">9:42 AM ✓✓</span>
+                        </div>
+                    </div>
+
+                    <!-- Bot Response -->
+                    <div class="flex justify-start">
+                        <div class="bg-gray-900 border border-gray-800 text-gray-200 p-3 rounded-2xl rounded-tl-none max-w-[85%] space-y-1.5">
+                            <div class="font-bold text-emerald-400 text-[11px]">✅ Gasto Registrado con Éxito</div>
+                            <div class="text-[10px] space-y-0.5 text-gray-300">
+                                <div>💰 <b>Monto:</b> $24.50 USD</div>
+                                <div>🏷️ <b>Categoría:</b> Alimentación</div>
+                                <div>💳 <b>Método:</b> Tarjeta</div>
+                            </div>
+                            <div class="text-[8px] text-gray-500 border-t border-gray-800 pt-1">Sincronizado con Notion DB</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-900 rounded-xl p-2 border border-gray-800 text-gray-400 text-xs flex justify-between">
+                    <span>Escribe o envía audio...</span>
+                    <span>🎙️</span>
+                </div>
+                <div class="w-28 h-1 bg-gray-600 rounded-full mx-auto mb-1"></div>
+            </div>
+
+            <!-- SCREEN 6: Dashboard 2.0 (Wide view simulated inside frame or card) -->
+            <div id="screen-dashboard" class="screen-view hidden w-full max-w-2xl bg-gray-900 border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 text-xs">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl">📊</span>
+                        <span class="font-bold text-white text-sm">Dashboard de Control Financiero 2.0</span>
+                    </div>
+                    <span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded text-[10px]">En Vivo</span>
+                </div>
+
+                <!-- Mini Metric Grid -->
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="bg-black/50 p-3 rounded-xl border border-gray-800">
+                        <div class="text-gray-400 text-[10px]">GASTO TOTAL</div>
+                        <div class="text-lg font-black text-white">$167.50</div>
+                    </div>
+                    <div class="bg-black/50 p-3 rounded-xl border border-gray-800">
+                        <div class="text-gray-400 text-[10px]">BALANCE</div>
+                        <div class="text-lg font-black text-emerald-400">$2,332.50</div>
+                    </div>
+                    <div class="bg-black/50 p-3 rounded-xl border border-gray-800">
+                        <div class="text-gray-400 text-[10px]">AHORRO</div>
+                        <div class="text-lg font-black text-indigo-400">$500.00</div>
+                    </div>
+                    <div class="bg-black/50 p-3 rounded-xl border border-gray-800">
+                        <div class="text-gray-400 text-[10px]">PRESUPUESTO</div>
+                        <div class="text-lg font-black text-amber-400">11.2%</div>
+                    </div>
+                </div>
+
+                <!-- Category Budgets Sample -->
+                <div class="bg-black/40 p-3.5 rounded-xl border border-gray-800 space-y-2">
+                    <span class="font-bold text-gray-300">Presupuestos por Categoría:</span>
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-[10px]">
+                            <span>🍔 Alimentación</span>
+                            <span class="text-emerald-400">$25.50 / $400.00 (6.4%)</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-1.5" style="width: 6.4%"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-[10px]">
+                            <span>💡 Servicios</span>
+                            <span class="text-amber-400">$85.00 / $250.00 (34%)</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-amber-500 h-1.5" style="width: 34%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-3 py-1.5 text-xs font-bold rounded-xl bg-gray-800 text-gray-300";
+            });
+
+            const targetScreen = document.getElementById(`screen-${screenId}`);
+            if (targetScreen) {
+                targetScreen.classList.remove('hidden');
+            }
+            const activeBtn = document.getElementById(`btn-${screenId}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn px-3 py-1.5 text-xs font-bold rounded-xl bg-indigo-600 text-white shadow";
+            }
+        }
+    </script>
+</body>
+</html>
