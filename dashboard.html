@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard Financiero Integral 2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="theme-color" content="#030712">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen pb-12">
+
+    <!-- Top Navigation Responsiva -->
+    <nav class="bg-gray-900/90 backdrop-blur-md sticky top-0 z-40 border-b border-gray-800 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span class="text-xl">📊</span>
+            <div>
+                <h1 class="text-sm sm:text-base font-bold text-white tracking-wide" id="dash-biz-title">Control Financiero</h1>
+                <p class="text-[10px] text-gray-400" id="dash-biz-subtitle">Notion • Multi-Divisa • POS</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <a href="/api/v1/export/csv" class="bg-emerald-600/90 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center space-x-1">
+                <span>📥 Exportar Excel</span>
+            </a>
+            <a href="/pwa" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center space-x-1">
+                <span>⚡ POS / Móvil</span>
+            </a>
+            <button onclick="loadDashboardData()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-2.5 py-1.5 rounded-xl border border-gray-700 transition">
+                🔄
+            </button>
+        </div>
+    </nav>
+
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Global Alert Banner -->
+        <div id="alert-banner" class="hidden p-4 rounded-2xl text-sm font-medium flex items-center justify-between shadow-lg">
+            <div class="flex items-center space-x-3">
+                <span id="alert-icon" class="text-xl">⚠️</span>
+                <span id="alert-message"></span>
+            </div>
+            <span id="alert-badge" class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider"></span>
+        </div>
+
+        <!-- Metric Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
+                <div class="flex justify-between items-center text-gray-400 text-xs font-medium mb-2">
+                    <span>GASTO MES ACTUAL</span>
+                    <span>💸</span>
+                </div>
+                <div class="text-3xl font-extrabold text-white" id="metric-spent">$0.00</div>
+                <div class="text-xs text-gray-500 mt-2">
+                    Presupuesto Global: <span id="metric-budget" class="text-gray-300">$0.00</span>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
+                <div class="flex justify-between items-center text-gray-400 text-xs font-medium mb-2">
+                    <span>BALANCE DISPONIBLE</span>
+                    <span>💳</span>
+                </div>
+                <div class="text-3xl font-extrabold text-emerald-400" id="metric-balance">$0.00</div>
+                <div class="text-xs text-gray-500 mt-2">
+                    Ingresos Mes: <span id="metric-income" class="text-gray-300">$0.00</span>
+                </div>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
+                <div class="flex justify-between items-center text-gray-400 text-xs font-medium mb-2">
+                    <span>AHORRO ACUMULADO</span>
+                    <span>🏦</span>
+                </div>
+                <div class="text-3xl font-extrabold text-indigo-400" id="metric-savings">$0.00</div>
+                <div class="text-xs text-emerald-400 mt-2">
+                    Meta alcanzada: 100%
+                </div>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
+                <div class="flex justify-between items-center text-gray-400 text-xs font-medium mb-2">
+                    <span>USO DEL PRESUPUESTO</span>
+                    <span>🎯</span>
+                </div>
+                <div class="text-3xl font-extrabold text-amber-400" id="metric-usage-pct">0%</div>
+                <div class="w-full bg-gray-800 rounded-full h-2 mt-3 overflow-hidden">
+                    <div id="budget-progress-bar" class="bg-amber-400 h-2 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Middle Row: Category Breakdown Chart & Category Budget Bars -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Category Chart Panel -->
+            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm lg:col-span-1 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-white mb-4">Desglose Gráfico</h2>
+                    <div class="h-64 relative flex items-center justify-center">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <p class="text-center text-xs text-gray-500 mt-4">Actualización continua</p>
+            </div>
+
+            <!-- Category Budgets with dynamic progress & alerts -->
+            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm lg:col-span-2 space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base font-bold text-white">Presupuestos por Categoría</h2>
+                        <p class="text-xs text-gray-400">Control de límites individuales y alertas</p>
+                    </div>
+                    <span class="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-2.5 py-1 rounded-lg">Tiempo Real</span>
+                </div>
+
+                <div id="budgets-container" class="space-y-3 pt-2">
+                    <!-- Dynamic budget bars generated by JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Row: Subscriptions & Transactions -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Subscriptions Manager Panel -->
+            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm lg:col-span-1 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-base font-bold text-white">🔄 Suscripciones Fijas</h2>
+                    <span id="subs-count" class="text-xs text-indigo-400 font-semibold">0 activas</span>
+                </div>
+                <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 text-xs space-y-1">
+                    <div class="flex justify-between text-gray-400">
+                        <span>Compromiso Mensual:</span>
+                        <span id="subs-monthly" class="font-bold text-white">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-gray-400">
+                        <span>Proyección Anual:</span>
+                        <span id="subs-yearly" class="font-bold text-amber-400">$0.00</span>
+                    </div>
+                </div>
+                <div id="subs-list" class="space-y-2 max-h-60 overflow-y-auto">
+                    <!-- Subscriptions loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Recent Expenses Table -->
+            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm lg:col-span-2 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-base font-bold text-white">📑 Últimos Gastos Registrados</h2>
+                    <span class="text-xs text-gray-400" id="expenses-count">0 registros</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-gray-400 border-b border-gray-800">
+                                <th class="pb-3 font-semibold">Descripción</th>
+                                <th class="pb-3 font-semibold">Categoría</th>
+                                <th class="pb-3 font-semibold">Método</th>
+                                <th class="pb-3 font-semibold text-right">Monto</th>
+                                <th class="pb-3 font-semibold text-center">Notion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenses-tbody" class="divide-y divide-gray-800/50">
+                            <!-- Rows loaded via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Executive Report Modal -->
+    <div id="report-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="text-base font-bold text-purple-400 flex items-center space-x-2">
+                    <span>📑 Reporte Ejecutivo Mensual</span>
+                </h3>
+                <button onclick="closeExecutiveReport()" class="text-gray-400 hover:text-white text-lg">✕</button>
+            </div>
+            <div id="report-content" class="text-xs text-gray-300 space-y-3 max-h-96 overflow-y-auto">
+                <!-- Content loaded via API -->
+            </div>
+            <div class="pt-3 border-t border-gray-800 flex justify-end">
+                <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-700 text-xs font-semibold px-4 py-2 rounded-xl text-gray-200 mr-2">🖨️ Imprimir</button>
+                <button onclick="closeExecutiveReport()" class="bg-purple-600 hover:bg-purple-500 text-xs font-semibold px-4 py-2 rounded-xl text-white">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let categoryChartInstance = null;
+
+        async function loadDashboardData() {
+            try {
+                const [metricsRes, expensesRes, budgetsRes, subsRes] = await Promise.all([
+                    fetch('/api/v1/metrics'),
+                    fetch('/api/v1/expenses'),
+                    fetch('/api/v1/budgets'),
+                    fetch('/api/v1/subscriptions')
+                ]);
+
+                const metrics = await metricsRes.json();
+                const expenses = await expensesRes.json();
+                const budgets = await budgetsRes.json();
+                const subs = await subsRes.json();
+
+                renderMetrics(metrics);
+                renderChart(metrics.category_breakdown);
+                renderBudgets(budgets);
+                renderSubscriptions(subs);
+                renderExpenses(expenses);
+            } catch (err) {
+                console.error("Error al cargar el dashboard:", err);
+            }
+        }
+
+        function renderMetrics(metrics) {
+            document.getElementById('metric-spent').innerText = `$${metrics.total_spent_month.toFixed(2)}`;
+            document.getElementById('metric-budget').innerText = `$${metrics.monthly_budget.toFixed(2)}`;
+            document.getElementById('metric-balance').innerText = `$${metrics.available_balance.toFixed(2)}`;
+            document.getElementById('metric-income').innerText = `$${metrics.monthly_income.toFixed(2)}`;
+            document.getElementById('metric-savings').innerText = `$${metrics.total_savings.toFixed(2)}`;
+            document.getElementById('metric-usage-pct').innerText = `${metrics.budget_usage_pct}%`;
+
+            const progressBar = document.getElementById('budget-progress-bar');
+            progressBar.style.width = `${Math.min(metrics.budget_usage_pct, 100)}%`;
+
+            const banner = document.getElementById('alert-banner');
+            const msg = document.getElementById('alert-message');
+            const badge = document.getElementById('alert-badge');
+            
+            if (metrics.alert.level === 'critical') {
+                banner.className = "p-4 rounded-2xl text-sm font-medium flex items-center justify-between bg-red-950/80 border border-red-800 text-red-200 shadow-lg";
+                msg.innerText = metrics.alert.message;
+                badge.className = "px-2.5 py-1 rounded-full text-xs font-bold uppercase bg-red-800 text-red-100";
+                badge.innerText = "Crítico";
+                banner.classList.remove('hidden');
+            } else if (metrics.alert.level === 'warning') {
+                banner.className = "p-4 rounded-2xl text-sm font-medium flex items-center justify-between bg-amber-950/80 border border-amber-800 text-amber-200 shadow-lg";
+                msg.innerText = metrics.alert.message;
+                badge.className = "px-2.5 py-1 rounded-full text-xs font-bold uppercase bg-amber-800 text-amber-100";
+                badge.innerText = "Advertencia";
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function renderBudgets(budgets) {
+            const container = document.getElementById('budgets-container');
+            container.innerHTML = '';
+            budgets.forEach(b => {
+                let barColor = 'bg-emerald-500';
+                let badgeClass = 'text-emerald-400 bg-emerald-950/60 border border-emerald-800';
+                let statusText = 'Normal';
+
+                if (b.status === 'exceeded') {
+                    barColor = 'bg-red-500';
+                    badgeClass = 'text-red-400 bg-red-950/60 border border-red-800 font-bold';
+                    statusText = 'Excedido';
+                } else if (b.status === 'warning') {
+                    barColor = 'bg-amber-500';
+                    badgeClass = 'text-amber-400 bg-amber-950/60 border border-amber-800';
+                    statusText = '80%+';
+                }
+
+                const div = document.createElement('div');
+                div.className = "bg-gray-950 p-3 rounded-xl border border-gray-800 space-y-1.5";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-200">${b.category}</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-gray-400">$${b.spent.toFixed(2)} / $${b.limit.toFixed(2)}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] ${badgeClass}">${statusText} (${b.percentage_used}%)</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                        <div class="${barColor} h-1.5 rounded-full" style="width: ${Math.min(b.percentage_used, 100)}%"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderSubscriptions(subsData) {
+            document.getElementById('subs-count').innerText = `${subsData.active_count} activas`;
+            document.getElementById('subs-monthly').innerText = `$${subsData.total_monthly_recurring.toFixed(2)}`;
+            document.getElementById('subs-yearly').innerText = `$${subsData.total_yearly_projection.toFixed(2)}`;
+
+            const list = document.getElementById('subs-list');
+            list.innerHTML = '';
+            subsData.subscriptions.forEach(s => {
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center p-2.5 bg-gray-950 rounded-xl border border-gray-800 text-xs";
+                item.innerHTML = `
+                    <div>
+                        <div class="font-semibold text-gray-200">${s.name}</div>
+                        <div class="text-[10px] text-gray-500">Día de cobro: ${s.billing_day}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-indigo-400">$${s.amount.toFixed(2)} ${s.currency}</div>
+                        <div class="text-[10px] text-gray-500">${s.category}</div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function renderChart(breakdown) {
+            const labels = Object.keys(breakdown);
+            const data = labels.map(k => breakdown[k].amount);
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            if (labels.length === 0) return;
+
+            categoryChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#f97316', '#6b7280'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        function renderExpenses(expenses) {
+            const tbody = document.getElementById('expenses-tbody');
+            document.getElementById('expenses-count').innerText = `${expenses.length} registros`;
+            tbody.innerHTML = '';
+
+            if (expenses.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-500">Sin gastos este mes.</td></tr>`;
+                return;
+            }
+
+            expenses.forEach(item => {
+                const dateFormatted = new Date(item.datetime).toLocaleString('es-ES', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+
+                const syncedBadge = item.notion_synced 
+                    ? `<span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded text-[10px]">Sincronizado</span>`
+                    : `<span class="bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded text-[10px]">Local</span>`;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-800/40 transition";
+                tr.innerHTML = `
+                    <td class="py-3 font-medium text-white">
+                        <div>${item.description}</div>
+                        <div class="text-[10px] text-gray-500">${dateFormatted}</div>
+                    </td>
+                    <td class="py-3"><span class="bg-gray-800 text-gray-300 px-2 py-1 rounded text-[11px]">${item.category}</span></td>
+                    <td class="py-3 text-gray-400">${item.payment_method}</td>
+                    <td class="py-3 text-right font-bold text-green-400">$${item.amount_base.toFixed(2)}</td>
+                    <td class="py-3 text-center">${syncedBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function openExecutiveReport() {
+            const modal = document.getElementById('report-modal');
+            const content = document.getElementById('report-content');
+            content.innerHTML = '<p class="text-center text-gray-400">Generando reporte con IA...</p>';
+            modal.classList.remove('hidden');
+
+            try {
+                const res = await fetch('/api/v1/monthly-report');
+                const rep = await res.json();
+                const sum = rep.financial_summary;
+
+                let adviceHtml = rep.ai_financial_advice.map(tip => `
+                    <li class="bg-gray-950 p-2.5 rounded-lg border border-purple-900/50 flex items-start space-x-2">
+                        <span class="text-purple-400">💡</span>
+                        <span>${tip}</span>
+                    </li>
+                `).join('');
+
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2 bg-gray-950 p-3 rounded-xl border border-gray-800">
+                        <div><span class="text-gray-500">Ingresos Mes:</span> <b class="text-white">$${sum.income}</b></div>
+                        <div><span class="text-gray-500">Gasto Total:</span> <b class="text-red-400">$${sum.total_spent}</b></div>
+                        <div><span class="text-gray-500">Ahorro Neto:</span> <b class="text-emerald-400">$${sum.net_savings}</b></div>
+                        <div><span class="text-gray-500">Tasa de Ahorro:</span> <b class="text-indigo-400">${sum.savings_rate_percentage}%</b></div>
+                    </div>
+                    <div class="space-y-1.5 pt-2">
+                        <h4 class="font-bold text-purple-300">Recomendaciones de Optimización Financiera:</h4>
+                        <ul class="space-y-2">${adviceHtml}</ul>
+                    </div>
+                `;
+            } catch (err) {
+                content.innerHTML = '<p class="text-red-400">Error al cargar el reporte.</p>';
+            }
+        }
+
+        function closeExecutiveReport() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        async function loadBusinessConfig() {
+            try {
+                const res = await fetch('/api/v1/business-config');
+                if (res.ok) {
+                    const cfg = await res.json();
+                    if (cfg.business_name) {
+                        document.getElementById('dash-biz-title').innerText = cfg.business_name;
+                        document.title = `${cfg.business_name} - Dashboard Financiero`;
+                    }
+                    if (cfg.business_type) {
+                        document.getElementById('dash-biz-subtitle').innerText = `${cfg.business_type} • ${cfg.base_currency} • POS Listo`;
+                    }
+                }
+            } catch(e) {
+                console.log("Config local");
+            }
+        }
+
+        // Init
+        loadBusinessConfig();
+        loadDashboardData();
+        setInterval(loadDashboardData, 10000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POS & Registro Rápido Financiero</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="theme-color" content="#090d16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Caja Rápida">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/wallet--v1.png">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .numpad-btn {
+            transition: all 0.08s ease-in-out;
+        }
+        .numpad-btn:active {
+            transform: scale(0.92);
+            background-color: #374151;
+        }
+        .pulse-mic {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen flex flex-col justify-between p-3 select-none">
+
+    <!-- Top Header: Selector Tipo + Divisa + Negocio -->
+    <header class="w-full max-w-sm mx-auto flex items-center justify-between pt-1 pb-2">
+        <!-- Toggle Gasto / Ingreso (Modo POS) -->
+        <div class="flex bg-gray-900 p-1 rounded-xl border border-gray-800">
+            <button onclick="setTransactionType('expense')" id="btn-type-expense"
+                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-rose-600 text-white shadow">
+                💸 Gasto
+            </button>
+            <button onclick="setTransactionType('income')" id="btn-type-income"
+                    class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white">
+                💰 Ingreso / Venta
+            </button>
+        </div>
+
+        <div class="flex items-center space-x-1.5">
+            <select id="currency" class="bg-gray-900 text-indigo-400 text-xs font-bold rounded-xl px-2 py-1.5 border border-gray-800 focus:outline-none">
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="MXN">MXN ($)</option>
+                <option value="COP">COP ($)</option>
+                <option value="ARS">ARS ($)</option>
+                <option value="GBP">GBP (£)</option>
+            </select>
+            <a href="/" class="bg-gray-900 p-1.5 rounded-xl border border-gray-800 text-xs text-gray-400 hover:text-white" title="Ver Dashboard">
+                📊
+            </a>
+            <a href="/api/v1/export/csv" class="bg-gray-900 p-1.5 rounded-xl border border-gray-800 text-xs text-emerald-400 hover:text-emerald-300" title="Descargar Excel/CSV">
+                📥
+            </a>
+        </div>
+    </header>
+
+    <!-- Subtitle / Business Name Banner -->
+    <div class="w-full max-w-sm mx-auto flex justify-between items-center px-1 text-[11px] text-gray-400">
+        <span id="biz-title" class="font-bold text-gray-300">🏪 Caja Rápida</span>
+        <span class="text-emerald-400 font-semibold text-[10px] bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-800/50">⚡ POS Listo</span>
+    </div>
+
+    <!-- Display Principal de Monto -->
+    <div class="w-full max-w-sm mx-auto bg-gray-900/90 border border-gray-800 rounded-2xl p-3 text-center shadow-lg relative my-1">
+        <div class="text-[10px] uppercase font-bold tracking-wider text-gray-400 flex justify-between px-2">
+            <span id="display-badge">REGISTRANDO GASTO</span>
+            <span id="display-payment">💳 TARJETA</span>
+        </div>
+        
+        <div class="flex items-center justify-center my-1">
+            <span id="currency-symbol" class="text-2xl font-bold text-gray-400 mr-1">$</span>
+            <div id="amount-display" class="text-4xl font-extrabold tracking-tight text-rose-400 transition-colors">0</div>
+        </div>
+
+        <input type="text" id="description-input" placeholder="Nota rápida (ej: Café, Taxi, Venta)"
+               class="w-full bg-gray-950/80 border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-center text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500">
+    </div>
+
+    <!-- Barra de Selección Rápida de Categoría -->
+    <div class="w-full max-w-sm mx-auto overflow-x-auto py-1 no-scrollbar">
+        <div class="flex space-x-1.5" id="category-chips">
+            <!-- Chips dinámicos -->
+        </div>
+    </div>
+
+    <!-- Atajos Rápidos de Monto (+5, +10, +20, etc.) -->
+    <div class="w-full max-w-sm mx-auto grid grid-cols-4 gap-1.5 text-xs font-semibold">
+        <button onclick="addPresetAmount(5)" class="bg-gray-900/80 hover:bg-gray-800 text-gray-300 py-1.5 rounded-xl border border-gray-800/80">+5</button>
+        <button onclick="addPresetAmount(10)" class="bg-gray-900/80 hover:bg-gray-800 text-gray-300 py-1.5 rounded-xl border border-gray-800/80">+10</button>
+        <button onclick="addPresetAmount(20)" class="bg-gray-900/80 hover:bg-gray-800 text-gray-300 py-1.5 rounded-xl border border-gray-800/80">+20</button>
+        <button onclick="addPresetAmount(50)" class="bg-gray-900/80 hover:bg-gray-800 text-gray-300 py-1.5 rounded-xl border border-gray-800/80">+50</button>
+    </div>
+
+    <!-- Input Oculto para Cámara / OCR -->
+    <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptScan(this)">
+
+    <!-- Teclado Numérico POS (Numpad Táctil) -->
+    <div class="w-full max-w-sm mx-auto grid grid-cols-4 gap-2 my-1">
+        <button onclick="pressNum('7')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">7</button>
+        <button onclick="pressNum('8')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">8</button>
+        <button onclick="pressNum('9')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">9</button>
+        <button onclick="togglePaymentMethod()" id="btn-pm" class="numpad-btn bg-indigo-950 text-indigo-300 text-xs font-bold py-3.5 rounded-2xl border border-indigo-800/60 flex flex-col items-center justify-center">
+            <span>💳</span>
+            <span class="text-[9px] mt-0.5" id="pm-text">Tarjeta</span>
+        </button>
+
+        <button onclick="pressNum('4')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">4</button>
+        <button onclick="pressNum('5')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">5</button>
+        <button onclick="pressNum('6')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">6</button>
+        <button onclick="document.getElementById('camera-input').click()" id="btn-cam" class="numpad-btn bg-teal-950 text-teal-300 text-base font-bold py-3.5 rounded-2xl border border-teal-800/60 flex flex-col items-center justify-center">
+            <span>📸</span>
+            <span class="text-[9px] mt-0.5">Ticket</span>
+        </button>
+
+        <button onclick="pressNum('1')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">1</button>
+        <button onclick="pressNum('2')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">2</button>
+        <button onclick="pressNum('3')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">3</button>
+        <button onclick="startVoiceRecognition()" id="btn-mic" class="numpad-btn bg-purple-950 text-purple-300 text-base font-bold py-3.5 rounded-2xl border border-purple-800/60 flex flex-col items-center justify-center">
+            <span id="mic-icon">🎙️</span>
+            <span class="text-[9px] mt-0.5">Voz</span>
+        </button>
+
+        <button onclick="clearAmount()" class="numpad-btn bg-gray-800/60 text-gray-400 text-xs font-bold py-3.5 rounded-2xl border border-gray-800">C</button>
+        <button onclick="pressNum('0')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">0</button>
+        <button onclick="pressNum('.')" class="numpad-btn bg-gray-900 text-xl font-bold py-3.5 rounded-2xl border border-gray-800 text-white">.</button>
+        
+        <!-- Botón Guardar / Confirmar 1-Tap -->
+        <button onclick="submitTransaction()" id="btn-submit"
+                class="numpad-btn bg-rose-600 text-white text-lg font-extrabold py-3.5 rounded-2xl shadow-lg shadow-rose-900/30 flex items-center justify-center">
+            ✓
+        </button>
+    </div>
+
+    <!-- Banner Toast flotante -->
+    <div id="toast" class="hidden fixed bottom-16 left-1/2 -translate-x-1/2 max-w-xs w-[90%] text-center text-xs font-semibold py-2.5 px-4 rounded-xl shadow-2xl z-50 transition-all"></div>
+
+    <!-- Footer con Cierre Diario Rápido y Exportación -->
+    <footer class="w-full max-w-sm mx-auto flex items-center justify-between text-[11px] text-gray-500 pt-1">
+        <button onclick="showDailySummaryModal()" class="hover:text-indigo-400 flex items-center space-x-1">
+            <span>📅</span>
+            <span>Cierre Diario</span>
+        </button>
+        <a href="/api/v1/export/csv" class="text-emerald-400 hover:underline flex items-center space-x-1">
+            <span>📥 Exportar CSV</span>
+        </a>
+        <a href="/" class="hover:text-indigo-400 flex items-center space-x-1">
+            <span>Dashboard →</span>
+        </a>
+    </footer>
+
+
+    <!-- Modal Resumen Diario -->
+    <div id="modal-daily" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-sm w-full p-5 space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                <h3 class="text-sm font-bold text-white">📅 Resumen del Día</h3>
+                <button onclick="document.getElementById('modal-daily').classList.add('hidden')" class="text-gray-400 text-lg">✕</button>
+            </div>
+            <div id="daily-content" class="text-xs space-y-2">
+                <!-- Cargado dinámicamente -->
+            </div>
+            <button onclick="document.getElementById('modal-daily').classList.add('hidden')" class="w-full bg-gray-800 text-white py-2 rounded-xl text-xs font-semibold">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        let currentAmountStr = "";
+        let transactionType = "expense"; // 'expense' o 'income'
+        let selectedCategory = "Alimentación";
+        let paymentMethods = ["Tarjeta", "Efectivo", "Transferencia"];
+        let paymentIndex = 0;
+
+        const expenseCategories = ["🍔 Alimentación", "🚗 Transporte", "🎬 Ocio", "💡 Servicios", "🏥 Salud", "📚 Educación", "📦 Otros"];
+        const incomeCategories = ["💵 Ventas", "💼 Salario", "🛠️ Servicios", "🎁 Extras", "📦 Otros"];
+
+        async function initApp() {
+            await loadBusinessConfig();
+            renderCategories();
+            updateDisplay();
+        }
+
+        async function loadBusinessConfig() {
+            try {
+                const res = await fetch('/api/v1/business-config');
+                if (res.ok) {
+                    const cfg = await res.json();
+                    if (cfg.business_name) {
+                        document.getElementById('biz-title').innerText = `🏪 ${cfg.business_name}`;
+                        document.title = `${cfg.business_name} - POS Rápido`;
+                    }
+                    if (cfg.base_currency) {
+                        document.getElementById('currency').value = cfg.base_currency;
+                    }
+                }
+            } catch (e) {
+                console.log("Config local");
+            }
+        }
+
+        async function handleReceiptScan(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            showToast("📸 Escaneando ticket con IA...", "bg-teal-900 text-teal-200");
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            try {
+                const res = await fetch('/api/v1/scan-receipt', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    const json = await res.json();
+                    const data = json.data;
+                    if (data.amount > 0) {
+                        currentAmountStr = data.amount.toString();
+                        setTransactionType('expense');
+                        selectedCategory = data.category || "Alimentación";
+                        renderCategories();
+                        document.getElementById('description-input').value = `${data.merchant || 'Ticket'}`;
+                        updateDisplay();
+                        showToast(`🧾 Detectado: $${data.amount} en ${data.merchant}. Pulsa ✓`, "bg-emerald-900 text-emerald-200");
+                    }
+                } else {
+                    showToast("❌ Error al escanear ticket", "bg-red-900 text-red-200");
+                }
+            } catch (e) {
+                showToast("❌ Error de conexión al escanear", "bg-red-900 text-red-200");
+            }
+        }
+
+        function setTransactionType(type) {
+            transactionType = type;
+            const isExpense = type === 'expense';
+            
+            document.getElementById('btn-type-expense').className = isExpense
+                ? "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-rose-600 text-white shadow"
+                : "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white";
+                
+            document.getElementById('btn-type-income').className = !isExpense
+                ? "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-emerald-600 text-white shadow"
+                : "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white";
+
+            document.getElementById('display-badge').innerText = isExpense ? "REGISTRANDO GASTO" : "REGISTRANDO INGRESO / VENTA";
+            
+            const amountDisp = document.getElementById('amount-display');
+            amountDisp.className = isExpense ? "text-4xl font-extrabold tracking-tight text-rose-400" : "text-4xl font-extrabold tracking-tight text-emerald-400";
+            
+            const submitBtn = document.getElementById('btn-submit');
+            submitBtn.className = isExpense 
+                ? "numpad-btn bg-rose-600 text-white text-lg font-extrabold py-3.5 rounded-2xl shadow-lg shadow-rose-900/30 flex items-center justify-center"
+                : "numpad-btn bg-emerald-600 text-white text-lg font-extrabold py-3.5 rounded-2xl shadow-lg shadow-emerald-900/30 flex items-center justify-center";
+
+            selectedCategory = isExpense ? "Alimentación" : "Ventas";
+            renderCategories();
+        }
+
+
+        function renderCategories() {
+            const list = transactionType === 'expense' ? expenseCategories : incomeCategories;
+            const container = document.getElementById('category-chips');
+            container.innerHTML = "";
+
+            list.forEach(cat => {
+                const cleanName = cat.split(" ")[1] || cat;
+                const isSelected = cleanName === selectedCategory;
+                const btn = document.createElement('button');
+                btn.type = "button";
+                btn.className = `px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                    isSelected 
+                        ? (transactionType === 'expense' ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white')
+                        : 'bg-gray-900 text-gray-400 border border-gray-800'
+                }`;
+                btn.innerText = cat;
+                btn.onclick = () => {
+                    selectedCategory = cleanName;
+                    renderCategories();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function pressNum(char) {
+            if (char === '.' && currentAmountStr.includes('.')) return;
+            if (currentAmountStr.length >= 8) return;
+            if (char === '.' && currentAmountStr === "") currentAmountStr = "0";
+            currentAmountStr += char;
+            updateDisplay();
+        }
+
+        function pressBackspace() {
+            currentAmountStr = currentAmountStr.slice(0, -1);
+            updateDisplay();
+        }
+
+        function clearAmount() {
+            currentAmountStr = "";
+            updateDisplay();
+        }
+
+        function addPresetAmount(val) {
+            let current = parseFloat(currentAmountStr) || 0;
+            current += val;
+            currentAmountStr = current.toString();
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            document.getElementById('amount-display').innerText = currentAmountStr === "" ? "0" : currentAmountStr;
+        }
+
+        function togglePaymentMethod() {
+            paymentIndex = (paymentIndex + 1) % paymentMethods.length;
+            const pm = paymentMethods[paymentIndex];
+            document.getElementById('pm-text').innerText = pm;
+            document.getElementById('display-payment').innerText = `${pm === 'Tarjeta' ? '💳' : pm === 'Efectivo' ? '💵' : '🏦'} ${pm.toUpperCase()}`;
+        }
+
+        async function submitTransaction() {
+            const amount = parseFloat(currentAmountStr);
+            if (!amount || amount <= 0) {
+                return showToast("⚠️ Ingresa un monto primero", "bg-amber-900 text-amber-200");
+            }
+
+            const desc = document.getElementById('description-input').value.trim() || 
+                         (transactionType === 'expense' ? `Gasto en ${selectedCategory}` : `Ingreso de ${selectedCategory}`);
+            
+            const payload = {
+                amount: amount,
+                currency: document.getElementById('currency').value,
+                category: selectedCategory,
+                description: desc,
+                payment_method: paymentMethods[paymentIndex]
+            };
+
+            const endpoint = transactionType === 'expense' ? '/api/v1/expense' : '/api/v1/income';
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    showToast(`✅ ${transactionType === 'expense' ? 'Gasto' : 'Ingreso'} de $${amount} guardado`, "bg-emerald-900 text-emerald-200");
+                    clearAmount();
+                    document.getElementById('description-input').value = "";
+                } else {
+                    showToast("❌ Error al guardar en base de datos", "bg-red-900 text-red-200");
+                }
+            } catch (e) {
+                showToast("❌ Error de red", "bg-red-900 text-red-200");
+            }
+        }
+
+        function startVoiceRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                return showToast("Tu navegador no soporta reconocimiento de voz", "bg-amber-900 text-amber-200");
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'es-ES';
+            recognition.interimResults = false;
+
+            const micBtn = document.getElementById('btn-mic');
+            micBtn.classList.add('pulse-mic');
+            showToast("🎙️ Escuchando... Di: 'Gasté 20 en comida'", "bg-indigo-900 text-indigo-200");
+
+            recognition.onresult = async (event) => {
+                micBtn.classList.remove('pulse-mic');
+                const speechResult = event.results[0][0].transcript;
+                showToast(`🗣️ "${speechResult}"`, "bg-indigo-900 text-indigo-200");
+
+                // Enviar al NLP
+                const res = await fetch('/api/v1/parse-natural-language', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: speechResult, currency: document.getElementById('currency').value })
+                });
+
+                const data = await res.json();
+                if (data.status === 'success' && data.parsed.amount > 0) {
+                    currentAmountStr = data.parsed.amount.toString();
+                    setTransactionType(data.parsed.type || 'expense');
+                    selectedCategory = data.parsed.category;
+                    renderCategories();
+                    document.getElementById('description-input').value = data.parsed.description;
+                    updateDisplay();
+                    showToast("✨ Auto-completado. Pulsa ✓ para confirmar", "bg-emerald-900 text-emerald-200");
+                } else {
+                    showToast("No detecté el monto con claridad", "bg-amber-900 text-amber-200");
+                }
+            };
+
+            recognition.onerror = () => {
+                micBtn.classList.remove('pulse-mic');
+                showToast("No se pudo capturar audio", "bg-red-900 text-red-200");
+            };
+
+            recognition.start();
+        }
+
+        async function showDailySummaryModal() {
+            const res = await fetch('/api/v1/daily-summary');
+            const data = await res.json();
+            const container = document.getElementById('daily-content');
+            
+            container.innerHTML = `
+                <div class="bg-gray-950 p-3 rounded-xl border border-gray-800 space-y-1">
+                    <div class="flex justify-between text-gray-400"><span>Ventas / Ingresos Hoy:</span><span class="text-emerald-400 font-bold">+$${data.incomes_today}</span></div>
+                    <div class="flex justify-between text-gray-400"><span>Gastos Hoy:</span><span class="text-rose-400 font-bold">-$${data.expenses_today}</span></div>
+                    <div class="flex justify-between border-t border-gray-800 pt-1 text-white font-extrabold">
+                        <span>Balance Neto:</span>
+                        <span class="${data.net_profit_today >= 0 ? 'text-emerald-400' : 'text-rose-400'}">$${data.net_profit_today}</span>
+                    </div>
+                </div>
+                <div class="font-bold text-gray-400 pt-1">Últimos Movimientos:</div>
+                <div class="max-h-40 overflow-y-auto space-y-1">
+                    ${data.recent_transactions.map(t => `
+                        <div class="flex justify-between items-center bg-gray-950/60 p-2 rounded-lg text-[11px]">
+                            <div>
+                                <div class="font-semibold text-white">${t.description}</div>
+                                <div class="text-[10px] text-gray-500">${t.category} • ${t.payment_method}</div>
+                            </div>
+                            <div class="font-bold ${t.type === 'income' ? 'text-emerald-400' : 'text-rose-400'}">
+                                ${t.type === 'income' ? '+' : '-'}$${t.amount}
+                            </div>
+                        </div>
+                    `).join('') || '<div class="text-gray-500 text-center py-2">Sin movimientos hoy</div>'}
+                </div>
+            `;
+            document.getElementById('modal-daily').classList.remove('hidden');
+        }
+
+        function showToast(msg, bg) {
+            const toast = document.getElementById('toast');
+            toast.className = `fixed bottom-16 left-1/2 -translate-x-1/2 max-w-xs w-[90%] text-center text-xs font-semibold py-2.5 px-4 rounded-xl shadow-2xl z-50 transition-all ${bg}`;
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
