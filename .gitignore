@@ -1,11 +1,18 @@
-﻿venv/
-.venv/
-env/
+# Entorno virtual y Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Variables de entorno y secretos
 .env
-.env.local
-expenses.db
-*.sqlite3
-.DS_Store
-Thumbs.db
+*.env.local
+
+# Base de datos local (opcional si prefieres no subir datos personales)
+*.db-journal
+
+# IDEs
+.vscode/
+.idea/
