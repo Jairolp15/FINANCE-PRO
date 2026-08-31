@@ -1,179 +1,290 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard Financiero Integral 2.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinancePro • Dashboard de Control Ejecutivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <meta name="theme-color" content="#030712">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        * { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Subtle Glow Effects & Gradients */
+        .bg-mesh {
+            background-color: #06080F;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+        }
+
+        .glass-card {
+            background: rgba(13, 17, 28, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+
+        .glow-indigo {
+            box-shadow: 0 0 35px -5px rgba(99, 102, 241, 0.25);
+        }
+
+        .glow-emerald {
+            box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.25);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
     </style>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen pb-12">
+<body class="bg-mesh text-slate-100 min-h-screen antialiased selection:bg-indigo-500 selection:text-white pb-12">
 
-    <!-- Top Navigation Responsiva -->
-    <nav class="bg-gray-900/90 backdrop-blur-md sticky top-0 z-40 border-b border-gray-800 px-4 py-3 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <span class="text-xl">📊</span>
-            <div>
-                <h1 class="text-sm sm:text-base font-bold text-white tracking-wide" id="dash-biz-title">Control Financiero</h1>
-                <p class="text-[10px] text-gray-400" id="dash-biz-subtitle">Notion • Multi-Divisa • POS</p>
-            </div>
-        </div>
-        <div class="flex items-center space-x-2">
-            <a href="/api/v1/export/csv" class="bg-emerald-600/90 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center space-x-1">
-                <span>📥 Exportar Excel</span>
-            </a>
-            <a href="/pwa" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow transition flex items-center space-x-1">
-                <span>⚡ POS / Móvil</span>
-            </a>
-            <button onclick="loadDashboardData()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-2.5 py-1.5 rounded-xl border border-gray-700 transition">
-                🔄
-            </button>
-        </div>
-    </nav>
-
-
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
-
-        <!-- Global Alert Banner -->
-        <div id="alert-banner" class="hidden p-4 rounded-2xl text-sm font-medium flex items-center justify-between shadow-lg">
-            <div class="flex items-center space-x-3">
-                <span id="alert-icon" class="text-xl">⚠️</span>
-                <span id="alert-message"></span>
-            </div>
-            <span id="alert-badge" class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider"></span>
-        </div>
-
-        <!-- Metric Cards Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-white/[0.06] bg-[#070913]/80 backdrop-blur-xl sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
             
-            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex justify-between items-center text-gray-400 text-xs font-medium mb-2">
-                    <span>GASTO MES ACTUAL</span>
-                    <span>💸</span>
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 p-[1px] shadow-lg shadow-indigo-500/20">
+                    <div class="w-full h-full bg-[#0B0F19] rounded-2xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
                 </div>
-                <div class="text-3xl font-extrabold text-white" id="metric-spent">$0.00</div>
-                <div class="text-xs text-gray-500 mt-2">
-                    Presupuesto Global: <span id="metric-budget" class="text-gray-300">$0.00</span>
-                </div>
-            </div>
-
-            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex justify-between items-center text-gray-400 text-xs font-medium mb-2">
-                    <span>BALANCE DISPONIBLE</span>
-                    <span>💳</span>
-                </div>
-                <div class="text-3xl font-extrabold text-emerald-400" id="metric-balance">$0.00</div>
-                <div class="text-xs text-gray-500 mt-2">
-                    Ingresos Mes: <span id="metric-income" class="text-gray-300">$0.00</span>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-lg font-bold tracking-tight text-white">FINANCE<span class="text-indigo-400">PRO</span></span>
+                        <span class="px-2 py-0.5 text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full">v2.5 PRO</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-medium">Patrimonio & Control Presupuestario Inteligente</p>
                 </div>
             </div>
 
-            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex justify-between items-center text-gray-400 text-xs font-medium mb-2">
-                    <span>AHORRO ACUMULADO</span>
-                    <span>🏦</span>
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-3">
+                <div class="hidden sm:flex items-center space-x-2 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-1.5 text-xs text-slate-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Notion API • Sincronizado</span>
                 </div>
-                <div class="text-3xl font-extrabold text-indigo-400" id="metric-savings">$0.00</div>
-                <div class="text-xs text-emerald-400 mt-2">
-                    Meta alcanzada: 100%
+
+                <button onclick="openExecutiveReport()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 transition-all flex items-center space-x-2 active:scale-95">
+                    <svg class="w-4 h-4 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Reporte IA Ejecutivo</span>
+                </button>
+
+                <a href="/pwa" class="bg-white/[0.05] hover:bg-white/[0.09] border border-white/[0.08] text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-xl transition flex items-center space-x-2">
+                    <span>⚡ Registro Móvil</span>
+                </a>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+
+        <!-- Executive Stat Metrics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            
+            <!-- Card 1: Gasto Mes -->
+            <div class="glass-card rounded-3xl p-6 transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold tracking-wider uppercase text-slate-400">Gasto Mes en Curso</p>
+                        <h3 class="text-3xl font-extrabold text-white mt-2 font-mono tracking-tight" id="metric-spent">$0.00</h3>
+                    </div>
+                    <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-2xl">
+                        <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs text-slate-400">
+                    <span>Límite Global: <b class="text-slate-200 font-mono" id="metric-budget">$0.00</b></span>
+                    <span class="text-emerald-400 flex items-center font-medium">● Activo</span>
                 </div>
             </div>
 
-            <div class="bg-gray-900 border border-gray-800 p-5 rounded-2xl shadow-sm">
-                <div class="flex justify-between items-center text-gray-400 text-xs font-medium mb-2">
-                    <span>USO DEL PRESUPUESTO</span>
-                    <span>🎯</span>
+            <!-- Card 2: Balance Disponible -->
+            <div class="glass-card rounded-3xl p-6 transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold tracking-wider uppercase text-slate-400">Liquidez Disponible</p>
+                        <h3 class="text-3xl font-extrabold text-emerald-400 mt-2 font-mono tracking-tight" id="metric-balance">$0.00</h3>
+                    </div>
+                    <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+                        <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
                 </div>
-                <div class="text-3xl font-extrabold text-amber-400" id="metric-usage-pct">0%</div>
-                <div class="w-full bg-gray-800 rounded-full h-2 mt-3 overflow-hidden">
-                    <div id="budget-progress-bar" class="bg-amber-400 h-2 rounded-full transition-all" style="width: 0%"></div>
+                <div class="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs text-slate-400">
+                    <span>Ingresos: <b class="text-slate-200 font-mono" id="metric-income">$0.00</b></span>
+                    <span class="text-indigo-400 font-medium">92% Salud</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Ahorro Acumulado -->
+            <div class="glass-card rounded-3xl p-6 transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold tracking-wider uppercase text-slate-400">Fondo de Ahorro</p>
+                        <h3 class="text-3xl font-extrabold text-indigo-400 mt-2 font-mono tracking-tight" id="metric-savings">$0.00</h3>
+                    </div>
+                    <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl">
+                        <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs text-slate-400">
+                    <span>Meta Mensual: <b class="text-slate-200 font-mono">$500.00</b></span>
+                    <span class="text-emerald-400 font-medium font-mono">100% OK</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Uso de Presupuesto -->
+            <div class="glass-card rounded-3xl p-6 transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold tracking-wider uppercase text-slate-400">Consumo Presupuesto</p>
+                        <h3 class="text-3xl font-extrabold text-amber-400 mt-2 font-mono tracking-tight" id="metric-usage-pct">0%</h3>
+                    </div>
+                    <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+                        <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/[0.04]">
+                    <div class="w-full bg-slate-800/80 rounded-full h-2 overflow-hidden p-[1px]">
+                        <div id="budget-progress-bar" class="bg-gradient-to-r from-emerald-500 via-indigo-500 to-amber-500 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+                    </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- Middle Row: Category Breakdown Chart & Category Budget Bars -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Middle Row: Analytics Chart & Category Budget Meters -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             <!-- Category Chart Panel -->
-            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm lg:col-span-1 flex flex-col justify-between">
-                <div>
-                    <h2 class="text-base font-bold text-white mb-4">Desglose Gráfico</h2>
-                    <div class="h-64 relative flex items-center justify-center">
-                        <canvas id="categoryChart"></canvas>
-                    </div>
-                </div>
-                <p class="text-center text-xs text-gray-500 mt-4">Actualización continua</p>
-            </div>
-
-            <!-- Category Budgets with dynamic progress & alerts -->
-            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm lg:col-span-2 space-y-4">
+            <div class="glass-card rounded-3xl p-7 lg:col-span-5 flex flex-col justify-between space-y-6">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h2 class="text-base font-bold text-white">Presupuestos por Categoría</h2>
-                        <p class="text-xs text-gray-400">Control de límites individuales y alertas</p>
+                        <h2 class="text-base font-bold text-white tracking-tight">Desglose de Gastos</h2>
+                        <p class="text-xs text-slate-400">Distribución porcentual por categoría</p>
                     </div>
-                    <span class="text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 px-2.5 py-1 rounded-lg">Tiempo Real</span>
+                    <span class="text-xs font-semibold px-2.5 py-1 bg-white/[0.04] border border-white/[0.08] rounded-xl text-slate-300">Este Mes</span>
                 </div>
 
-                <div id="budgets-container" class="space-y-3 pt-2">
-                    <!-- Dynamic budget bars generated by JS -->
+                <div class="relative h-64 flex items-center justify-center">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+
+                <div class="pt-4 border-t border-white/[0.05] grid grid-cols-3 gap-2 text-center text-xs">
+                    <div class="bg-white/[0.02] p-2.5 rounded-2xl border border-white/[0.04]">
+                        <div class="text-[10px] text-slate-400">Top Gasto</div>
+                        <div class="font-bold text-indigo-400 font-mono mt-0.5" id="top-cat-name">Servicios</div>
+                    </div>
+                    <div class="bg-white/[0.02] p-2.5 rounded-2xl border border-white/[0.04]">
+                        <div class="text-[10px] text-slate-400">Transacciones</div>
+                        <div class="font-bold text-white font-mono mt-0.5" id="tx-total-count">0</div>
+                    </div>
+                    <div class="bg-white/[0.02] p-2.5 rounded-2xl border border-white/[0.04]">
+                        <div class="text-[10px] text-slate-400">Promedio/Día</div>
+                        <div class="font-bold text-emerald-400 font-mono mt-0.5" id="daily-avg">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Category Budgets -->
+            <div class="glass-card rounded-3xl p-7 lg:col-span-7 space-y-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base font-bold text-white tracking-tight">Presupuestos por Categoría</h2>
+                        <p class="text-xs text-slate-400">Límites mensuales con monitoreo de riesgo</p>
+                    </div>
+                    <button onclick="loadDashboardData()" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition flex items-center space-x-1">
+                        <span>Refrescar</span>
+                    </button>
+                </div>
+
+                <div id="budgets-container" class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+                    <!-- Dynamic budget cards loaded via JavaScript -->
                 </div>
             </div>
 
         </div>
 
-        <!-- Bottom Row: Subscriptions & Transactions -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Bottom Row: Subscriptions & Transaction Log -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <!-- Subscriptions Manager Panel -->
-            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm lg:col-span-1 space-y-4">
+            <!-- Subscriptions Panel -->
+            <div class="glass-card rounded-3xl p-7 lg:col-span-4 space-y-5">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-base font-bold text-white">🔄 Suscripciones Fijas</h2>
-                    <span id="subs-count" class="text-xs text-indigo-400 font-semibold">0 activas</span>
-                </div>
-                <div class="bg-gray-950 p-4 rounded-xl border border-gray-800 text-xs space-y-1">
-                    <div class="flex justify-between text-gray-400">
-                        <span>Compromiso Mensual:</span>
-                        <span id="subs-monthly" class="font-bold text-white">$0.00</span>
+                    <div>
+                        <h2 class="text-base font-bold text-white tracking-tight">Suscripciones Fijas</h2>
+                        <p class="text-xs text-slate-400">Cargos automáticos recurrentes</p>
                     </div>
-                    <div class="flex justify-between text-gray-400">
-                        <span>Proyección Anual:</span>
-                        <span id="subs-yearly" class="font-bold text-amber-400">$0.00</span>
+                    <span id="subs-count" class="text-xs font-bold font-mono px-2.5 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">0 activas</span>
+                </div>
+
+                <div class="bg-gradient-to-br from-indigo-950/40 to-slate-900/60 p-4 rounded-2xl border border-indigo-500/20 space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Total Mensual Fijo:</span>
+                        <span id="subs-monthly" class="font-bold font-mono text-white text-sm">$0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Proyección Anual:</span>
+                        <span id="subs-yearly" class="font-bold font-mono text-amber-400 text-sm">$0.00</span>
                     </div>
                 </div>
-                <div id="subs-list" class="space-y-2 max-h-60 overflow-y-auto">
-                    <!-- Subscriptions loaded dynamically -->
+
+                <div id="subs-list" class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                    <!-- Subscriptions list items -->
                 </div>
             </div>
 
             <!-- Recent Expenses Table -->
-            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-sm lg:col-span-2 space-y-4">
+            <div class="glass-card rounded-3xl p-7 lg:col-span-8 space-y-5">
                 <div class="flex justify-between items-center">
-                    <h2 class="text-base font-bold text-white">📑 Últimos Gastos Registrados</h2>
-                    <span class="text-xs text-gray-400" id="expenses-count">0 registros</span>
+                    <div>
+                        <h2 class="text-base font-bold text-white tracking-tight">Registro de Movimientos</h2>
+                        <p class="text-xs text-slate-400">Últimas transacciones capturadas</p>
+                    </div>
+                    <span class="text-xs text-slate-400 font-mono" id="expenses-count">0 registros</span>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead>
-                            <tr class="text-gray-400 border-b border-gray-800">
-                                <th class="pb-3 font-semibold">Descripción</th>
+                            <tr class="text-slate-400 border-b border-white/[0.06]">
+                                <th class="pb-3 font-semibold">Descripción & Fecha</th>
                                 <th class="pb-3 font-semibold">Categoría</th>
                                 <th class="pb-3 font-semibold">Método</th>
                                 <th class="pb-3 font-semibold text-right">Monto</th>
                                 <th class="pb-3 font-semibold text-center">Notion</th>
                             </tr>
                         </thead>
-                        <tbody id="expenses-tbody" class="divide-y divide-gray-800/50">
-                            <!-- Rows loaded via JavaScript -->
+                        <tbody id="expenses-tbody" class="divide-y divide-white/[0.04]">
+                            <!-- Dynamic rows -->
                         </tbody>
                     </table>
                 </div>
@@ -184,20 +295,23 @@
     </main>
 
     <!-- Executive Report Modal -->
-    <div id="report-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                <h3 class="text-base font-bold text-purple-400 flex items-center space-x-2">
-                    <span>📑 Reporte Ejecutivo Mensual</span>
-                </h3>
-                <button onclick="closeExecutiveReport()" class="text-gray-400 hover:text-white text-lg">✕</button>
+    <div id="report-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-[#0B0F19] border border-white/[0.1] rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-5 relative">
+            <div class="flex justify-between items-center border-b border-white/[0.06] pb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">✨</div>
+                    <h3 class="text-base font-bold text-white tracking-tight">Reporte Financiero Ejecutivo con IA</h3>
+                </div>
+                <button onclick="closeExecutiveReport()" class="text-slate-400 hover:text-white text-lg">✕</button>
             </div>
-            <div id="report-content" class="text-xs text-gray-300 space-y-3 max-h-96 overflow-y-auto">
+            
+            <div id="report-content" class="text-xs text-slate-300 space-y-4 max-h-[28rem] overflow-y-auto pr-1">
                 <!-- Content loaded via API -->
             </div>
-            <div class="pt-3 border-t border-gray-800 flex justify-end">
-                <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-700 text-xs font-semibold px-4 py-2 rounded-xl text-gray-200 mr-2">🖨️ Imprimir</button>
-                <button onclick="closeExecutiveReport()" class="bg-purple-600 hover:bg-purple-500 text-xs font-semibold px-4 py-2 rounded-xl text-white">Cerrar</button>
+
+            <div class="pt-4 border-t border-white/[0.06] flex justify-end space-x-2">
+                <button onclick="window.print()" class="bg-white/[0.05] hover:bg-white/[0.09] text-xs font-semibold px-4 py-2.5 rounded-xl text-slate-200">🖨️ Exportar PDF</button>
+                <button onclick="closeExecutiveReport()" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-xs font-semibold px-5 py-2.5 rounded-xl text-white shadow-lg">Entendido</button>
             </div>
         </div>
     </div>
@@ -240,57 +354,41 @@
             const progressBar = document.getElementById('budget-progress-bar');
             progressBar.style.width = `${Math.min(metrics.budget_usage_pct, 100)}%`;
 
-            const banner = document.getElementById('alert-banner');
-            const msg = document.getElementById('alert-message');
-            const badge = document.getElementById('alert-badge');
-            
-            if (metrics.alert.level === 'critical') {
-                banner.className = "p-4 rounded-2xl text-sm font-medium flex items-center justify-between bg-red-950/80 border border-red-800 text-red-200 shadow-lg";
-                msg.innerText = metrics.alert.message;
-                badge.className = "px-2.5 py-1 rounded-full text-xs font-bold uppercase bg-red-800 text-red-100";
-                badge.innerText = "Crítico";
-                banner.classList.remove('hidden');
-            } else if (metrics.alert.level === 'warning') {
-                banner.className = "p-4 rounded-2xl text-sm font-medium flex items-center justify-between bg-amber-950/80 border border-amber-800 text-amber-200 shadow-lg";
-                msg.innerText = metrics.alert.message;
-                badge.className = "px-2.5 py-1 rounded-full text-xs font-bold uppercase bg-amber-800 text-amber-100";
-                badge.innerText = "Advertencia";
-                banner.classList.remove('hidden');
-            } else {
-                banner.classList.add('hidden');
-            }
+            const daysInMonth = new Date().getDate();
+            document.getElementById('daily-avg').innerText = `$${(metrics.total_spent_month / Math.max(1, daysInMonth)).toFixed(2)}`;
         }
 
         function renderBudgets(budgets) {
             const container = document.getElementById('budgets-container');
             container.innerHTML = '';
             budgets.forEach(b => {
-                let barColor = 'bg-emerald-500';
-                let badgeClass = 'text-emerald-400 bg-emerald-950/60 border border-emerald-800';
+                let barColor = 'bg-gradient-to-r from-emerald-500 to-teal-400';
+                let badgeClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
                 let statusText = 'Normal';
 
                 if (b.status === 'exceeded') {
-                    barColor = 'bg-red-500';
-                    badgeClass = 'text-red-400 bg-red-950/60 border border-red-800 font-bold';
+                    barColor = 'bg-gradient-to-r from-red-500 to-rose-400';
+                    badgeClass = 'text-rose-400 bg-rose-500/10 border-rose-500/20 font-bold';
                     statusText = 'Excedido';
                 } else if (b.status === 'warning') {
-                    barColor = 'bg-amber-500';
-                    badgeClass = 'text-amber-400 bg-amber-950/60 border border-amber-800';
-                    statusText = '80%+';
+                    barColor = 'bg-gradient-to-r from-amber-500 to-yellow-400';
+                    badgeClass = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+                    statusText = 'Alerta 80%';
                 }
 
                 const div = document.createElement('div');
-                div.className = "bg-gray-950 p-3 rounded-xl border border-gray-800 space-y-1.5";
+                div.className = "bg-white/[0.02] hover:bg-white/[0.04] p-4 rounded-2xl border border-white/[0.05] space-y-2.5 transition";
                 div.innerHTML = `
                     <div class="flex justify-between items-center text-xs">
-                        <span class="font-bold text-gray-200">${b.category}</span>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-gray-400">$${b.spent.toFixed(2)} / $${b.limit.toFixed(2)}</span>
-                            <span class="px-2 py-0.5 rounded text-[10px] ${badgeClass}">${statusText} (${b.percentage_used}%)</span>
-                        </div>
+                        <span class="font-bold text-slate-200">${b.category}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${badgeClass}">${statusText} (${b.percentage_used}%)</span>
                     </div>
-                    <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
-                        <div class="${barColor} h-1.5 rounded-full" style="width: ${Math.min(b.percentage_used, 100)}%"></div>
+                    <div class="flex justify-between items-center text-[11px] text-slate-400 font-mono">
+                        <span>Gastado: <b class="text-white">$${b.spent.toFixed(2)}</b></span>
+                        <span>Límite: $${b.limit.toFixed(2)}</span>
+                    </div>
+                    <div class="w-full bg-slate-800/80 rounded-full h-1.5 overflow-hidden">
+                        <div class="${barColor} h-1.5 rounded-full transition-all duration-500" style="width: ${Math.min(b.percentage_used, 100)}%"></div>
                     </div>
                 `;
                 container.appendChild(div);
@@ -306,15 +404,20 @@
             list.innerHTML = '';
             subsData.subscriptions.forEach(s => {
                 const item = document.createElement('div');
-                item.className = "flex justify-between items-center p-2.5 bg-gray-950 rounded-xl border border-gray-800 text-xs";
+                item.className = "flex justify-between items-center p-3 bg-white/[0.02] hover:bg-white/[0.04] rounded-2xl border border-white/[0.05] text-xs transition";
                 item.innerHTML = `
-                    <div>
-                        <div class="font-semibold text-gray-200">${s.name}</div>
-                        <div class="text-[10px] text-gray-500">Día de cobro: ${s.billing_day}</div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-xs">
+                            ${s.name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-200">${s.name}</div>
+                            <div class="text-[10px] text-slate-500 font-mono">Día ${s.billing_day} de cada mes</div>
+                        </div>
                     </div>
                     <div class="text-right">
-                        <div class="font-bold text-indigo-400">$${s.amount.toFixed(2)} ${s.currency}</div>
-                        <div class="text-[10px] text-gray-500">${s.category}</div>
+                        <div class="font-bold font-mono text-white">$${s.amount.toFixed(2)}</div>
+                        <div class="text-[10px] text-indigo-400">${s.category}</div>
                     </div>
                 `;
                 list.appendChild(item);
@@ -326,6 +429,10 @@
             const data = labels.map(k => breakdown[k].amount);
             const ctx = document.getElementById('categoryChart').getContext('2d');
 
+            if (labels.length > 0) {
+                document.getElementById('top-cat-name').innerText = labels[0];
+            }
+
             if (categoryChartInstance) categoryChartInstance.destroy();
             if (labels.length === 0) return;
 
@@ -335,15 +442,19 @@
                     labels: labels,
                     datasets: [{
                         data: data,
-                        backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#f97316', '#6b7280'],
-                        borderWidth: 0
+                        backgroundColor: [
+                            '#6366f1', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#64748b'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 8
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '72%',
                     plugins: {
-                        legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 10 } } }
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 }, boxWidth: 10, padding: 12 } }
                     }
                 }
             });
@@ -351,11 +462,12 @@
 
         function renderExpenses(expenses) {
             const tbody = document.getElementById('expenses-tbody');
-            document.getElementById('expenses-count').innerText = `${expenses.length} registros`;
+            document.getElementById('expenses-count').innerText = `${expenses.length} movimientos`;
+            document.getElementById('tx-total-count').innerText = expenses.length;
             tbody.innerHTML = '';
 
             if (expenses.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-gray-500">Sin gastos este mes.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500 font-medium">No se han registrado movimientos este mes.</td></tr>`;
                 return;
             }
 
@@ -365,20 +477,22 @@
                 });
 
                 const syncedBadge = item.notion_synced 
-                    ? `<span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded text-[10px]">Sincronizado</span>`
-                    : `<span class="bg-gray-800 text-gray-400 border border-gray-700 px-2 py-0.5 rounded text-[10px]">Local</span>`;
+                    ? `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-semibold">● Notion</span>`
+                    : `<span class="bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full text-[10px]">Local</span>`;
 
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-800/40 transition";
+                tr.className = "hover:bg-white/[0.02] transition";
                 tr.innerHTML = `
-                    <td class="py-3 font-medium text-white">
-                        <div>${item.description}</div>
-                        <div class="text-[10px] text-gray-500">${dateFormatted}</div>
+                    <td class="py-3.5 font-medium text-slate-200">
+                        <div class="font-semibold text-white">${item.description}</div>
+                        <div class="text-[10px] text-slate-500 font-mono">${dateFormatted}</div>
                     </td>
-                    <td class="py-3"><span class="bg-gray-800 text-gray-300 px-2 py-1 rounded text-[11px]">${item.category}</span></td>
-                    <td class="py-3 text-gray-400">${item.payment_method}</td>
-                    <td class="py-3 text-right font-bold text-green-400">$${item.amount_base.toFixed(2)}</td>
-                    <td class="py-3 text-center">${syncedBadge}</td>
+                    <td class="py-3.5">
+                        <span class="bg-white/[0.04] border border-white/[0.06] text-slate-300 px-2.5 py-1 rounded-xl text-[11px] font-medium">${item.category}</span>
+                    </td>
+                    <td class="py-3.5 text-slate-400 font-medium">${item.payment_method}</td>
+                    <td class="py-3.5 text-right font-mono font-bold text-emerald-400 text-sm">$${item.amount_base.toFixed(2)}</td>
+                    <td class="py-3.5 text-center">${syncedBadge}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -387,7 +501,7 @@
         async function openExecutiveReport() {
             const modal = document.getElementById('report-modal');
             const content = document.getElementById('report-content');
-            content.innerHTML = '<p class="text-center text-gray-400">Generando reporte con IA...</p>';
+            content.innerHTML = '<div class="py-8 text-center text-indigo-400 animate-pulse font-medium">Sintetizando métricas y generando diagnóstico financiero con IA...</div>';
             modal.classList.remove('hidden');
 
             try {
@@ -396,26 +510,26 @@
                 const sum = rep.financial_summary;
 
                 let adviceHtml = rep.ai_financial_advice.map(tip => `
-                    <li class="bg-gray-950 p-2.5 rounded-lg border border-purple-900/50 flex items-start space-x-2">
-                        <span class="text-purple-400">💡</span>
-                        <span>${tip}</span>
+                    <li class="bg-white/[0.02] p-3 rounded-2xl border border-indigo-500/20 flex items-start space-x-3">
+                        <span class="text-indigo-400 text-base">💡</span>
+                        <span class="text-slate-300 leading-relaxed">${tip}</span>
                     </li>
                 `).join('');
 
                 content.innerHTML = `
-                    <div class="grid grid-cols-2 gap-2 bg-gray-950 p-3 rounded-xl border border-gray-800">
-                        <div><span class="text-gray-500">Ingresos Mes:</span> <b class="text-white">$${sum.income}</b></div>
-                        <div><span class="text-gray-500">Gasto Total:</span> <b class="text-red-400">$${sum.total_spent}</b></div>
-                        <div><span class="text-gray-500">Ahorro Neto:</span> <b class="text-emerald-400">$${sum.net_savings}</b></div>
-                        <div><span class="text-gray-500">Tasa de Ahorro:</span> <b class="text-indigo-400">${sum.savings_rate_percentage}%</b></div>
+                    <div class="grid grid-cols-2 gap-3 bg-white/[0.02] p-4 rounded-2xl border border-white/[0.06]">
+                        <div><span class="text-slate-500 block text-[10px]">Ingresos del Mes</span> <b class="text-white text-sm font-mono">$${sum.income.toFixed(2)}</b></div>
+                        <div><span class="text-slate-500 block text-[10px]">Total Egresos</span> <b class="text-rose-400 text-sm font-mono">$${sum.total_spent.toFixed(2)}</b></div>
+                        <div><span class="text-slate-500 block text-[10px]">Ahorro Neto Real</span> <b class="text-emerald-400 text-sm font-mono">$${sum.net_savings.toFixed(2)}</b></div>
+                        <div><span class="text-slate-500 block text-[10px]">Tasa de Ahorro</span> <b class="text-indigo-400 text-sm font-mono">${sum.savings_rate_percentage}%</b></div>
                     </div>
-                    <div class="space-y-1.5 pt-2">
-                        <h4 class="font-bold text-purple-300">Recomendaciones de Optimización Financiera:</h4>
-                        <ul class="space-y-2">${adviceHtml}</ul>
+                    <div class="space-y-2 pt-2">
+                        <h4 class="font-bold text-white text-xs uppercase tracking-wider">Recomendaciones Financieras Personalizadas:</h4>
+                        <ul class="space-y-2.5">${adviceHtml}</ul>
                     </div>
                 `;
             } catch (err) {
-                content.innerHTML = '<p class="text-red-400">Error al cargar el reporte.</p>';
+                content.innerHTML = '<p class="text-red-400">Error al consultar el reporte.</p>';
             }
         }
 
@@ -423,26 +537,6 @@
             document.getElementById('report-modal').classList.add('hidden');
         }
 
-        async function loadBusinessConfig() {
-            try {
-                const res = await fetch('/api/v1/business-config');
-                if (res.ok) {
-                    const cfg = await res.json();
-                    if (cfg.business_name) {
-                        document.getElementById('dash-biz-title').innerText = cfg.business_name;
-                        document.title = `${cfg.business_name} - Dashboard Financiero`;
-                    }
-                    if (cfg.business_type) {
-                        document.getElementById('dash-biz-subtitle').innerText = `${cfg.business_type} • ${cfg.base_currency} • POS Listo`;
-                    }
-                }
-            } catch(e) {
-                console.log("Config local");
-            }
-        }
-
-        // Init
-        loadBusinessConfig();
         loadDashboardData();
         setInterval(loadDashboardData, 10000);
     </script>
