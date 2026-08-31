@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinancePro Enterprise • Centro Financiero</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .bg-mesh {
+            background-color: #05070D;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+        }
+
+        .glass-card {
+            background: rgba(13, 17, 28, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 9999px; }
+    </style>
+</head>
+<body class="bg-mesh text-slate-100 min-h-screen antialiased selection:bg-indigo-500 selection:text-white pb-16">
+
+    <!-- 1. PIN LOCK SECURITY OVERLAY -->
+    <div id="pin-overlay" class="fixed inset-0 bg-[#05070D] z-50 flex items-center justify-center p-4">
+        <div class="glass-card max-w-sm w-full p-8 rounded-3xl text-center space-y-6 shadow-2xl border border-white/[0.1]">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-emerald-400 p-[1px] mx-auto shadow-lg shadow-indigo-500/25">
+                <div class="w-full h-full bg-[#0B0F19] rounded-2xl flex items-center justify-center text-xl">
+                    🛡️
+                </div>
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-base font-bold text-white tracking-tight">FinancePro Seguridad</h3>
+                <p class="text-xs text-slate-400">Ingresa tu PIN de seguridad (Default: <b>1234</b>)</p>
+            </div>
+            
+            <div class="flex justify-center space-x-3">
+                <input type="password" maxlength="4" id="pin-input" autofocus placeholder="••••"
+                       class="text-3xl tracking-[1em] text-center font-mono font-bold bg-black/50 border border-white/[0.1] rounded-2xl p-3 w-44 text-indigo-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+            </div>
+
+            <button onclick="checkPin()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-indigo-500/25 text-xs transition active:scale-[0.98]">
+                🔓 Desbloquear Centro Financiero
+            </button>
+            <div id="pin-error" class="hidden text-rose-400 text-xs font-semibold">PIN incorrecto. Intenta de nuevo.</div>
+        </div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="border-b border-white/[0.06] bg-[#070913]/80 backdrop-blur-xl sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <div class="flex items-center space-x-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 p-[1px] shadow-lg shadow-indigo-500/20">
+                    <div class="w-full h-full bg-[#0B0F19] rounded-2xl flex items-center justify-center">
+                        <span class="font-black text-indigo-400 text-sm">FP</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-lg font-bold tracking-tight text-white">FINANCE<span class="text-indigo-400">PRO</span></span>
+                        <span class="px-2 py-0.5 text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full">ENTERPRISE</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-medium">Control de Ingresos, Gastos, Metas & Presupuestos</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center space-x-2.5">
+                <a href="/api/v1/export/csv" class="bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-1.5" title="Exportar CSV">
+                    <span>📄 Exportar CSV</span>
+                </a>
+
+                <button onclick="openExecutiveReport()" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 transition flex items-center space-x-1.5 active:scale-95">
+                    <span>✨ Reporte IA</span>
+                </button>
+
+                <a href="/pwa" class="bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition">
+                    <span>⚡ Captura</span>
+                </a>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+
+        <!-- Executive Stat Metrics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            
+            <!-- Card 1: Ingresos Reales -->
+            <div class="glass-card rounded-3xl p-6 transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold tracking-wider uppercase text-slate-400">Ingresos del Mes</p>
+                        <h3 class="text-3xl font-extrabold text-emerald-400 mt-2 font-mono tracking-tight" id="metric-income">$0.00</h3>
+                    </div>
+                    <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-400">💼</div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs text-slate-400">
+                    <span>Cashflow Neto: <b class="text-emerald-400 font-mono" id="metric-cashflow">$0.00</b></span>
+                    <span class="text-emerald-400 font-medium">● Positivo</span>
+                </div>
+            </div>
+
+            <!-- Card 2: Gasto Mes -->
+            <div class="glass-card rounded-3xl p-6 transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold tracking-wider uppercase text-slate-400">Gasto Mes en Curso</p>
+                        <h3 class="text-3xl font-extrabold text-white mt-2 font-mono tracking-tight" id="metric-spent">$0.00</h3>
+                    </div>
+                    <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-2xl text-rose-400">💸</div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs text-slate-400">
+                    <span>Presupuesto: <b class="text-slate-200 font-mono" id="metric-budget">$0.00</b></span>
+                    <span class="text-slate-300 font-mono" id="metric-usage-pct">0%</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Metas de Ahorro Acumuladas -->
+            <div class="glass-card rounded-3xl p-6 transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold tracking-wider uppercase text-slate-400">Metas de Ahorro</p>
+                        <h3 class="text-3xl font-extrabold text-indigo-400 mt-2 font-mono tracking-tight" id="metric-savings">$0.00</h3>
+                    </div>
+                    <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl text-indigo-400">🎯</div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs text-slate-400">
+                    <span>Huchas Activas: <b class="text-indigo-400 font-mono" id="goals-count">3 metas</b></span>
+                    <span class="text-emerald-400 font-medium">En Progreso</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Salud Financiera -->
+            <div class="glass-card rounded-3xl p-6 transition">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold tracking-wider uppercase text-slate-400">Score Financiero</p>
+                        <h3 class="text-3xl font-extrabold text-purple-400 mt-2 font-mono tracking-tight">94/100</h3>
+                    </div>
+                    <div class="p-3 bg-purple-500/10 border border-purple-500/20 rounded-2xl text-purple-400">🛡️</div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/[0.04]">
+                    <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                        <div class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-2 rounded-full" style="width: 94%"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Row: Metas de Ahorro / Buckets -->
+        <div class="glass-card rounded-3xl p-7 space-y-5">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold text-white tracking-tight">🏦 Metas de Ahorro & Sobres Digitales</h2>
+                    <p class="text-xs text-slate-400">Fondos dedicados para emergencias, viajes e inversiones</p>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">Gamificado</span>
+            </div>
+
+            <div id="savings-goals-container" class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                <!-- Dynamic goals -->
+            </div>
+        </div>
+
+        <!-- Middle Row: Chart & Incomes Tracker -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Category Chart Panel -->
+            <div class="glass-card rounded-3xl p-7 lg:col-span-5 flex flex-col justify-between space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base font-bold text-white tracking-tight">Desglose de Gastos</h2>
+                        <p class="text-xs text-slate-400">Distribución porcentual por categoría</p>
+                    </div>
+                    <span class="text-xs font-semibold px-2.5 py-1 bg-white/[0.04] border border-white/[0.08] rounded-xl text-slate-300">Este Mes</span>
+                </div>
+
+                <div class="relative h-64 flex items-center justify-center">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+
+                <div class="pt-4 border-t border-white/[0.05] grid grid-cols-3 gap-2 text-center text-xs">
+                    <div class="bg-white/[0.02] p-2.5 rounded-2xl border border-white/[0.04]">
+                        <div class="text-[10px] text-slate-400">Top Gasto</div>
+                        <div class="font-bold text-indigo-400 font-mono mt-0.5" id="top-cat-name">Servicios</div>
+                    </div>
+                    <div class="bg-white/[0.02] p-2.5 rounded-2xl border border-white/[0.04]">
+                        <div class="text-[10px] text-slate-400">Transacciones</div>
+                        <div class="font-bold text-white font-mono mt-0.5" id="tx-total-count">0</div>
+                    </div>
+                    <div class="bg-white/[0.02] p-2.5 rounded-2xl border border-white/[0.04]">
+                        <div class="text-[10px] text-slate-400">Tasa Ahorro</div>
+                        <div class="font-bold text-emerald-400 font-mono mt-0.5" id="savings-rate-tag">92%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Incomes Tracker Panel -->
+            <div class="glass-card rounded-3xl p-7 lg:col-span-7 space-y-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-base font-bold text-white tracking-tight">💼 Fuentes de Ingreso Registradas</h2>
+                        <p class="text-xs text-slate-400">Control de múltiples flujos de capital</p>
+                    </div>
+                    <button onclick="loadDashboardData()" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300">Refrescar</button>
+                </div>
+
+                <div id="incomes-container" class="space-y-3 pt-1">
+                    <!-- Dynamic incomes loaded via JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Presupuestos por Categoría Grid -->
+        <div class="glass-card rounded-3xl p-7 space-y-5">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold text-white tracking-tight">🎯 Presupuestos por Categoría</h2>
+                    <p class="text-xs text-slate-400">Límites mensuales con monitoreo de riesgo</p>
+                </div>
+            </div>
+            <div id="budgets-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 pt-1">
+                <!-- Dynamic budgets -->
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="glass-card rounded-3xl p-7 space-y-5">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold text-white tracking-tight">📑 Historial de Movimientos</h2>
+                    <p class="text-xs text-slate-400">Últimas transacciones registradas</p>
+                </div>
+                <span class="text-xs text-slate-400 font-mono" id="expenses-count">0 registros</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="text-slate-400 border-b border-white/[0.06]">
+                            <th class="pb-3 font-semibold">Descripción & Fecha</th>
+                            <th class="pb-3 font-semibold">Categoría</th>
+                            <th class="pb-3 font-semibold">Método</th>
+                            <th class="pb-3 font-semibold text-right">Monto</th>
+                            <th class="pb-3 font-semibold text-center">Notion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenses-tbody" class="divide-y divide-white/[0.04]">
+                        <!-- Dynamic rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Deposit Modal for Savings Goals -->
+    <div id="deposit-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-card max-w-sm w-full p-6 rounded-3xl shadow-2xl space-y-4 border border-white/[0.1]">
+            <div class="flex justify-between items-center pb-2 border-b border-white/[0.06]">
+                <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                    <span id="deposit-goal-icon">🎯</span>
+                    <span id="deposit-goal-title">Aportar a Meta</span>
+                </h3>
+                <button onclick="closeDepositModal()" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <div>
+                <label class="text-xs text-slate-400 mb-1 block">Monto a Depositar ($)</label>
+                <input type="number" id="deposit-amount" step="10" placeholder="50.00" class="w-full text-2xl font-bold font-mono bg-black/50 border border-white/[0.08] rounded-2xl p-3 text-center text-emerald-400 focus:outline-none focus:border-indigo-500">
+            </div>
+            <button onclick="submitDeposit()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-3 rounded-2xl shadow-lg text-xs">
+                Confirmar Depósito
+            </button>
+        </div>
+    </div>
+
+    <!-- Executive Report Modal -->
+    <div id="report-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-[#0B0F19] border border-white/[0.1] rounded-3xl max-w-lg w-full p-7 shadow-2xl space-y-5 relative">
+            <div class="flex justify-between items-center border-b border-white/[0.06] pb-4">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">✨</div>
+                    <h3 class="text-base font-bold text-white tracking-tight">Diagnóstico Financiero con IA</h3>
+                </div>
+                <button onclick="closeExecutiveReport()" class="text-slate-400 hover:text-white text-lg">✕</button>
+            </div>
+            
+            <div id="report-content" class="text-xs text-slate-300 space-y-4 max-h-[28rem] overflow-y-auto pr-1"></div>
+
+            <div class="pt-4 border-t border-white/[0.06] flex justify-end space-x-2">
+                <a href="/api/v1/export/csv" class="bg-white/[0.05] hover:bg-white/[0.09] text-xs font-semibold px-4 py-2.5 rounded-xl text-slate-200">📄 Descargar CSV</a>
+                <button onclick="window.print()" class="bg-white/[0.05] hover:bg-white/[0.09] text-xs font-semibold px-4 py-2.5 rounded-xl text-slate-200">🖨️ Imprimir PDF</button>
+                <button onclick="closeExecutiveReport()" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-xs font-semibold px-5 py-2.5 rounded-xl text-white shadow-lg">Listo</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let categoryChartInstance = null;
+        let selectedGoalId = null;
+
+        // PIN Security Check
+        function checkPin() {
+            const pin = document.getElementById('pin-input').value;
+            if (pin === '1234') {
+                sessionStorage.setItem('financepro_auth', 'true');
+                document.getElementById('pin-overlay').classList.add('hidden');
+                loadDashboardData();
+            } else {
+                document.getElementById('pin-error').classList.remove('hidden');
+            }
+        }
+
+        if (sessionStorage.getItem('financepro_auth') === 'true') {
+            document.getElementById('pin-overlay').classList.add('hidden');
+        }
+
+        document.getElementById('pin-input')?.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') checkPin();
+        });
+
+        async function loadDashboardData() {
+            try {
+                const [metricsRes, expensesRes, budgetsRes, subsRes, goalsRes, incomesRes] = await Promise.all([
+                    fetch('/api/v1/metrics'),
+                    fetch('/api/v1/expenses'),
+                    fetch('/api/v1/budgets'),
+                    fetch('/api/v1/subscriptions'),
+                    fetch('/api/v1/savings-goals'),
+                    fetch('/api/v1/incomes')
+                ]);
+
+                const metrics = await metricsRes.json();
+                const expenses = await expensesRes.json();
+                const budgets = await budgetsRes.json();
+                const goals = await goalsRes.json();
+                const incomes = await incomesRes.json();
+
+                renderMetrics(metrics);
+                renderChart(metrics.category_breakdown);
+                renderBudgets(budgets);
+                renderSavingsGoals(goals);
+                renderIncomes(incomes);
+                renderExpenses(expenses);
+            } catch (err) {
+                console.error("Error al cargar el dashboard:", err);
+            }
+        }
+
+        function renderMetrics(metrics) {
+            document.getElementById('metric-spent').innerText = `$${metrics.total_spent_month.toFixed(2)}`;
+            document.getElementById('metric-budget').innerText = `$${metrics.monthly_budget.toFixed(2)}`;
+            document.getElementById('metric-income').innerText = `$${metrics.monthly_income.toFixed(2)}`;
+            document.getElementById('metric-cashflow').innerText = `$${metrics.net_cashflow.toFixed(2)}`;
+            document.getElementById('metric-savings').innerText = `$${metrics.total_savings.toFixed(2)}`;
+            document.getElementById('metric-usage-pct').innerText = `${metrics.budget_usage_pct}%`;
+        }
+
+        function renderSavingsGoals(goalsData) {
+            const container = document.getElementById('savings-goals-container');
+            container.innerHTML = '';
+            document.getElementById('goals-count').innerText = `${goalsData.goals.length} metas`;
+
+            goalsData.goals.forEach(g => {
+                const card = document.createElement('div');
+                card.className = "bg-white/[0.02] hover:bg-white/[0.04] p-5 rounded-2xl border border-white/[0.05] space-y-3 transition";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">${g.icon}</span>
+                            <div>
+                                <h4 class="font-bold text-white text-xs">${g.title}</h4>
+                                <span class="text-[10px] text-slate-500 font-mono">Meta: ${g.deadline || '2026'}</span>
+                            </div>
+                        </div>
+                        <button onclick="openDepositModal(${g.id}, '${g.title}', '${g.icon}')" class="px-2.5 py-1 text-[11px] font-semibold rounded-xl bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white transition">
+                            + Aportar
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-center text-xs font-mono">
+                        <span class="text-emerald-400 font-bold">$${g.current_amount.toFixed(2)}</span>
+                        <span class="text-slate-400">de $${g.target_amount.toFixed(2)} (${g.percentage}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                        <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2 rounded-full" style="width: ${Math.min(g.percentage, 100)}%"></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderIncomes(incomesData) {
+            const container = document.getElementById('incomes-container');
+            container.innerHTML = '';
+            incomesData.incomes.forEach(inc => {
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center p-3.5 bg-white/[0.02] hover:bg-white/[0.04] rounded-2xl border border-white/[0.05] text-xs transition";
+                item.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+                            💵
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-200">${inc.source}</div>
+                            <div class="text-[10px] text-slate-500 font-mono">${inc.category} • ${inc.date}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold font-mono text-emerald-400 text-sm">+$${inc.amount.toFixed(2)}</div>
+                        <span class="text-[10px] text-slate-500 font-mono">${inc.is_recurring ? 'Recurrente' : 'Puntual'}</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderBudgets(budgets) {
+            const container = document.getElementById('budgets-container');
+            container.innerHTML = '';
+            budgets.forEach(b => {
+                let barColor = 'bg-gradient-to-r from-emerald-500 to-teal-400';
+                let badgeClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+                let statusText = 'Normal';
+
+                if (b.status === 'exceeded') {
+                    barColor = 'bg-gradient-to-r from-red-500 to-rose-400';
+                    badgeClass = 'text-rose-400 bg-rose-500/10 border-rose-500/20 font-bold';
+                    statusText = 'Excedido';
+                } else if (b.status === 'warning') {
+                    barColor = 'bg-gradient-to-r from-amber-500 to-yellow-400';
+                    badgeClass = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+                    statusText = 'Alerta 80%';
+                }
+
+                const div = document.createElement('div');
+                div.className = "bg-white/[0.02] hover:bg-white/[0.04] p-4 rounded-2xl border border-white/[0.05] space-y-2.5 transition";
+                div.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-200">${b.category}</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold border ${badgeClass}">${statusText} (${b.percentage_used}%)</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[11px] text-slate-400 font-mono">
+                        <span>Gastado: <b class="text-white">$${b.spent.toFixed(2)}</b></span>
+                        <span>Límite: $${b.limit.toFixed(2)}</span>
+                    </div>
+                    <div class="w-full bg-slate-800/80 rounded-full h-1.5 overflow-hidden">
+                        <div class="${barColor} h-1.5 rounded-full" style="width: ${Math.min(b.percentage_used, 100)}%"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderChart(breakdown) {
+            const labels = Object.keys(breakdown);
+            const data = labels.map(k => breakdown[k].amount);
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+
+            if (labels.length > 0) {
+                document.getElementById('top-cat-name').innerText = labels[0];
+            }
+
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            if (labels.length === 0) return;
+
+            categoryChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#6366f1', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4', '#64748b'],
+                        borderWidth: 0,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '72%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', size: 10 }, boxWidth: 10, padding: 12 } }
+                    }
+                }
+            });
+        }
+
+        function renderExpenses(expenses) {
+            const tbody = document.getElementById('expenses-tbody');
+            document.getElementById('expenses-count').innerText = `${expenses.length} movimientos`;
+            document.getElementById('tx-total-count').innerText = expenses.length;
+            tbody.innerHTML = '';
+
+            if (expenses.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500 font-medium">No se han registrado movimientos este mes.</td></tr>`;
+                return;
+            }
+
+            expenses.forEach(item => {
+                const dateFormatted = new Date(item.datetime).toLocaleString('es-ES', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+
+                const syncedBadge = item.notion_synced 
+                    ? `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-semibold">● Notion</span>`
+                    : `<span class="bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded-full text-[10px]">Local</span>`;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/[0.02] transition";
+                tr.innerHTML = `
+                    <td class="py-3.5 font-medium text-slate-200">
+                        <div class="font-semibold text-white">${item.description}</div>
+                        <div class="text-[10px] text-slate-500 font-mono">${dateFormatted}</div>
+                    </td>
+                    <td class="py-3.5">
+                        <span class="bg-white/[0.04] border border-white/[0.06] text-slate-300 px-2.5 py-1 rounded-xl text-[11px] font-medium">${item.category}</span>
+                    </td>
+                    <td class="py-3.5 text-slate-400 font-medium">${item.payment_method}</td>
+                    <td class="py-3.5 text-right font-mono font-bold text-emerald-400 text-sm">$${item.amount_base.toFixed(2)}</td>
+                    <td class="py-3.5 text-center">${syncedBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openDepositModal(id, title, icon) {
+            selectedGoalId = id;
+            document.getElementById('deposit-goal-title').innerText = title;
+            document.getElementById('deposit-goal-icon').innerText = icon;
+            document.getElementById('deposit-amount').value = "";
+            document.getElementById('deposit-modal').classList.remove('hidden');
+        }
+
+        function closeDepositModal() {
+            document.getElementById('deposit-modal').classList.add('hidden');
+        }
+
+        async function submitDeposit() {
+            const amount = parseFloat(document.getElementById('deposit-amount').value);
+            if (!amount || amount <= 0) return;
+            await fetch(`/api/v1/savings-goals/${selectedGoalId}/deposit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: amount })
+            });
+            closeDepositModal();
+            loadDashboardData();
+        }
+
+        async function openExecutiveReport() {
+            const modal = document.getElementById('report-modal');
+            const content = document.getElementById('report-content');
+            content.innerHTML = '<div class="py-8 text-center text-indigo-400 animate-pulse font-medium">Sintetizando métricas y generando diagnóstico financiero con IA...</div>';
+            modal.classList.remove('hidden');
+
+            try {
+                const res = await fetch('/api/v1/monthly-report');
+                const rep = await res.json();
+                const sum = rep.financial_summary;
+
+                let adviceHtml = rep.ai_financial_advice.map(tip => `
+                    <li class="bg-white/[0.02] p-3 rounded-2xl border border-indigo-500/20 flex items-start space-x-3">
+                        <span class="text-indigo-400 text-base">💡</span>
+                        <span class="text-slate-300 leading-relaxed">${tip}</span>
+                    </li>
+                `).join('');
+
+                content.innerHTML = `
+                    <div class="grid grid-cols-2 gap-3 bg-white/[0.02] p-4 rounded-2xl border border-white/[0.06]">
+                        <div><span class="text-slate-500 block text-[10px]">Ingresos del Mes</span> <b class="text-white text-sm font-mono">$${sum.income.toFixed(2)}</b></div>
+                        <div><span class="text-slate-500 block text-[10px]">Total Egresos</span> <b class="text-rose-400 text-sm font-mono">$${sum.total_spent.toFixed(2)}</b></div>
+                        <div><span class="text-slate-500 block text-[10px]">Ahorro Neto Real</span> <b class="text-emerald-400 text-sm font-mono">$${sum.net_savings.toFixed(2)}</b></div>
+                        <div><span class="text-slate-500 block text-[10px]">Tasa de Ahorro</span> <b class="text-indigo-400 text-sm font-mono">${sum.savings_rate_percentage}%</b></div>
+                    </div>
+                    <div class="space-y-2 pt-2">
+                        <h4 class="font-bold text-white text-xs uppercase tracking-wider">Recomendaciones Financieras:</h4>
+                        <ul class="space-y-2.5">${adviceHtml}</ul>
+                    </div>
+                `;
+            } catch (err) {
+                content.innerHTML = '<p class="text-red-400">Error al consultar el reporte.</p>';
+            }
+        }
+
+        function closeExecutiveReport() {
+            document.getElementById('report-modal').classList.add('hidden');
+        }
+
+        loadDashboardData();
+        setInterval(loadDashboardData, 10000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FinancePro • Captura Ultrarrápida</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="theme-color" content="#070913">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FinancePro">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-sheet {
+            background: rgba(15, 20, 32, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-[#06080F] text-slate-100 min-h-screen flex flex-col justify-between p-4 selection:bg-indigo-500">
+
+    <!-- Top Status Header -->
+    <div class="pt-2 text-center space-y-2">
+        <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] text-[11px] text-slate-400">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>FinancePro Mobile • Sincronización Inmediata</span>
+        </div>
+
+        <!-- Mode Pills -->
+        <div class="flex justify-center p-1 bg-white/[0.03] border border-white/[0.06] rounded-2xl max-w-xs mx-auto">
+            <button onclick="switchTab('form')" id="tab-form" class="flex-1 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 text-white shadow-md transition">Manual</button>
+            <button onclick="switchTab('nlp')" id="tab-nlp" class="flex-1 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition">💬 Voz / IA</button>
+            <button onclick="switchTab('ocr')" id="tab-ocr" class="flex-1 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition">📸 Ticket</button>
+        </div>
+    </div>
+
+    <!-- 1. TAB: REGISTRO MANUAL ELEGANTE -->
+    <div id="section-form" class="glass-sheet rounded-3xl p-6 shadow-2xl max-w-sm mx-auto w-full space-y-4 my-auto">
+        
+        <!-- Monto & Selector de Divisa -->
+        <div>
+            <div class="flex justify-between items-center mb-1 text-[11px] text-slate-400 font-medium">
+                <span>Monto del Gasto</span>
+                <select id="currency" class="bg-white/[0.05] text-indigo-400 font-mono font-bold rounded-lg px-2 py-0.5 border border-white/[0.08] focus:outline-none">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="MXN">MXN ($)</option>
+                    <option value="COP">COP ($)</option>
+                    <option value="ARS">ARS ($)</option>
+                    <option value="GBP">GBP (£)</option>
+                </select>
+            </div>
+            <div class="relative">
+                <input type="number" id="amount" step="0.01" placeholder="0.00" autofocus
+                       class="w-full text-4xl font-extrabold font-mono bg-black/40 border border-white/[0.08] rounded-2xl px-4 py-3.5 text-center text-emerald-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition tracking-tight">
+            </div>
+        </div>
+
+        <!-- Categoría -->
+        <div>
+            <label class="block text-[11px] text-slate-400 mb-1 font-medium">Categoría</label>
+            <select id="category" class="w-full bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition">
+                <option value="Alimentación">🍔 Alimentación & Restaurantes</option>
+                <option value="Transporte">🚗 Transporte, Uber & Gasolina</option>
+                <option value="Ocio">🎬 Ocio, Salidas & Eventos</option>
+                <option value="Servicios">💡 Servicios, Internet & Hogar</option>
+                <option value="Salud">🏥 Salud, Farmacia & Fitness</option>
+                <option value="Educación">📚 Educación, Cursos & Libros</option>
+                <option value="Otros">📦 Otros Gastos</option>
+            </select>
+        </div>
+
+        <!-- Método de Pago -->
+        <div>
+            <label class="block text-[11px] text-slate-400 mb-1.5 font-medium">Método de Pago</label>
+            <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="selectPayment('Tarjeta')" id="btn-Tarjeta"
+                        class="pm-btn bg-indigo-600 border border-indigo-500 rounded-xl py-2.5 text-xs font-semibold text-white transition shadow-sm">💳 Tarjeta</button>
+                <button type="button" onclick="selectPayment('Efectivo')" id="btn-Efectivo"
+                        class="pm-btn bg-white/[0.03] border border-white/[0.06] rounded-xl py-2.5 text-xs font-semibold text-slate-300 transition">💵 Efectivo</button>
+                <button type="button" onclick="selectPayment('Transferencia')" id="btn-Transferencia"
+                        class="pm-btn bg-white/[0.03] border border-white/[0.06] rounded-xl py-2.5 text-xs font-semibold text-slate-300 transition">🏦 Transf.</button>
+            </div>
+        </div>
+
+        <!-- Nota -->
+        <div>
+            <label class="block text-[11px] text-slate-400 mb-1 font-medium">Nota / Detalle (Opcional)</label>
+            <input type="text" id="description" placeholder="Ej: Cena con clientes"
+                   class="w-full bg-white/[0.03] border border-white/[0.06] rounded-2xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition">
+        </div>
+
+        <!-- Submit Button -->
+        <button onclick="sendExpense()" id="submit-btn"
+                class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center space-x-2 text-sm">
+            <span>💾 Confirmar y Sincronizar</span>
+        </button>
+    </div>
+
+    <!-- 2. TAB: IA NLP -->
+    <div id="section-nlp" class="hidden glass-sheet rounded-3xl p-6 shadow-2xl max-w-sm mx-auto w-full space-y-4 my-auto">
+        <div class="text-center space-y-1">
+            <h3 class="text-sm font-bold text-white">Dictado o Lenguaje Natural</h3>
+            <p class="text-[11px] text-slate-400">La IA extraerá el monto y la categoría automáticamente:</p>
+        </div>
+        <textarea id="nlp-text" rows="3" placeholder="Ej: Gasté 45 euros en gasolina con tarjeta"
+                  class="w-full bg-black/40 border border-white/[0.08] rounded-2xl p-4 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 transition"></textarea>
+        <button onclick="processNLP()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 active:scale-[0.98] text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-indigo-500/25 transition text-xs flex items-center justify-center space-x-2">
+            <span>✨ Interpretar y Registrar</span>
+        </button>
+    </div>
+
+    <!-- 3. TAB: OCR VISION -->
+    <div id="section-ocr" class="hidden glass-sheet rounded-3xl p-6 shadow-2xl max-w-sm mx-auto w-full space-y-4 my-auto text-center">
+        <div class="space-y-1">
+            <h3 class="text-sm font-bold text-white">Escáner de Tickets con Visión IA</h3>
+            <p class="text-[11px] text-slate-400">Extrae el total del ticket en 1 segundo</p>
+        </div>
+        <label class="flex flex-col items-center justify-center border border-dashed border-indigo-500/30 rounded-3xl p-8 cursor-pointer hover:border-indigo-500 bg-indigo-500/[0.02] transition">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl mb-3">📸</div>
+            <span class="text-xs text-indigo-400 font-bold">Tomar Foto al Ticket</span>
+            <span class="text-[10px] text-slate-500 mt-1">Cámara de tu smartphone</span>
+            <input type="file" accept="image/*" capture="environment" id="camera-input" class="hidden" onchange="uploadReceipt()">
+        </label>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="hidden max-w-sm mx-auto w-full text-center text-xs p-3 rounded-2xl transition-all shadow-xl font-medium"></div>
+
+    <!-- Footer link -->
+    <div class="text-center text-xs text-slate-500 pb-2">
+        <a href="/" class="hover:text-indigo-400 transition font-medium">Ver Dashboard Completo →</a>
+    </div>
+
+    <script>
+        let selectedPaymentMethod = "Tarjeta";
+
+        function switchTab(tab) {
+            ['form', 'nlp', 'ocr'].forEach(t => {
+                document.getElementById(`section-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = "flex-1 py-1.5 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition";
+            });
+            document.getElementById(`section-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).className = "flex-1 py-1.5 text-xs font-semibold rounded-xl bg-indigo-600 text-white shadow-md transition";
+        }
+
+        function selectPayment(method) {
+            selectedPaymentMethod = method;
+            document.querySelectorAll('.pm-btn').forEach(btn => {
+                btn.className = "pm-btn bg-white/[0.03] border border-white/[0.06] rounded-xl py-2.5 text-xs font-semibold text-slate-300 transition";
+            });
+            document.getElementById(`btn-${method}`).className = "pm-btn bg-indigo-600 border border-indigo-500 rounded-xl py-2.5 text-xs font-semibold text-white transition shadow-sm";
+        }
+
+        async function sendExpense() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            if (!amount || amount <= 0) return showToast("Por favor ingresa un monto válido", "bg-rose-950/90 border border-rose-800 text-rose-200");
+
+            const payload = {
+                amount: amount,
+                currency: document.getElementById('currency').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value.trim() || "Gasto Rápido",
+                payment_method: selectedPaymentMethod
+            };
+
+            try {
+                const res = await fetch('/api/v1/expense', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    showToast("✅ Gasto registrado y sincronizado en Notion", "bg-emerald-950/90 border border-emerald-800 text-emerald-200");
+                    document.getElementById('amount').value = "";
+                    document.getElementById('description').value = "";
+                } else {
+                    showToast("Error al procesar el gasto", "bg-rose-950/90 border border-rose-800 text-rose-200");
+                }
+            } catch (e) {
+                showToast("Error de conexión con el servidor", "bg-rose-950/90 border border-rose-800 text-rose-200");
+            }
+        }
+
+        async function processNLP() {
+            const text = document.getElementById('nlp-text').value.trim();
+            if (!text) return showToast("Escribe un gasto primero", "bg-rose-950/90 border border-rose-800 text-rose-200");
+
+            const res = await fetch('/api/v1/parse-natural-language', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text, currency: document.getElementById('currency').value })
+            });
+
+            const data = await res.json();
+            if (data.status === 'success' && data.parsed.amount > 0) {
+                await fetch('/api/v1/expense', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data.parsed)
+                });
+                showToast(`✅ Detectado: $${data.parsed.amount} en ${data.parsed.category}`, "bg-emerald-950/90 border border-emerald-800 text-emerald-200");
+                document.getElementById('nlp-text').value = "";
+            } else {
+                showToast("No se pudo detectar el monto con claridad", "bg-amber-950/90 border border-amber-800 text-amber-200");
+            }
+        }
+
+        async function uploadReceipt() {
+            showToast("🔍 Procesando ticket con IA...", "bg-indigo-950/90 border border-indigo-800 text-indigo-200");
+            const res = await fetch('/api/v1/scan-receipt', { method: 'POST' });
+            const data = await res.json();
+            if (data.status === 'success') {
+                document.getElementById('amount').value = data.data.amount;
+                document.getElementById('category').value = data.data.category;
+                document.getElementById('description').value = data.data.merchant;
+                switchTab('form');
+                showToast("✅ Ticket analizado con éxito", "bg-emerald-950/90 border border-emerald-800 text-emerald-200");
+            }
+        }
+
+        function showToast(msg, cls) {
+            const toast = document.getElementById('toast');
+            toast.className = `max-w-sm mx-auto w-full text-center text-xs p-3 rounded-2xl transition-all shadow-xl font-medium ${cls}`;
+            toast.innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+    </script>
+</body>
+</html>
